@@ -156,3 +156,4 @@ cython_debug/
 dump/
 json/
 pdf/
+.logs/

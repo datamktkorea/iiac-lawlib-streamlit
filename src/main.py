@@ -1,7 +1,11 @@
 import os
-import streamlit as st
+import time
+from datetime import datetime
 
+import streamlit as st
 from core import run_llm
+
+os.makedirs("./.logs", exist_ok=True)
 
 st.set_page_config(
     page_title="인천국제공항공사 | 생성형 AI",
@@ -34,6 +38,9 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 if prompt := st.chat_input("궁금한 사항을 입력해주세요..."):
+    start_time = time.time()
+    timestamp = datetime.strftime(datetime.now(), "%Y.%m.%d.%H:%M:%S:%f")
+
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -53,6 +60,24 @@ if prompt := st.chat_input("궁금한 사항을 입력해주세요..."):
             st.markdown(
                 f"- [{metadata.get('source')}]({metadata.get('link')}) - {metadata.get('page')} 페이지"
             )
+
+        with open(f".logs/{timestamp}.txt", "w") as file:
+            file.write(f"[질문]:\n{prompt}\n\n")
+
+        with open(f".logs/{timestamp}.txt", "a") as file:
+            file.write(f"[답변]:\n{content}\n\n")
+
+        with open(f".logs/{timestamp}.txt", "a") as file:
+            file.write("[참고자료]:\n")
+
+            for source_document in source_documents:
+                metadata = source_document.metadata
+                file.write(
+                    f"- {metadata.get('source')}, {metadata.get('link')}, {metadata.get('page')} 페이지\n"
+                )
+
+        with open(f".logs/{timestamp}.txt", "a") as file:
+            file.write(f"\n[소요시간]:\n{time.time() - start_time}")
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.messages.append({"role": "assistant", "content": content})

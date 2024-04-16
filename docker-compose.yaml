@@ -1,7 +1,7 @@
 version: '3'
 services:
   iiaclaw-web:
-    image: biz/iiaclaw-web:1.0.0
+    image: biz/iiaclaw-web:1.0.1
     build:
       context: .
       dockerfile: Dockerfile

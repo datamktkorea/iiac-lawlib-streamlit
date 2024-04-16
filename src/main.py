@@ -12,7 +12,7 @@ st.set_page_config(
     page_icon="airplane",
 )
 
-st.image(os.path.join(os.getcwd(), "src", "assets", "logo.png"), width=140)
+st.image("src/assets/datatogo-logo.png", width=360)
 st.header("인천국제공항공사 AI 도우미")
 
 if "messages" not in st.session_state:

@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 st.image(os.path.join(os.getcwd(), "src", "assets", "logo.png"), width=140)
-st.header("인천공항공사 사규 검색 도우미")
+st.header("인천국제공항공사 AI 도우미")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [

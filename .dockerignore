@@ -6,4 +6,6 @@ docker-compose.yml
 .venv
 
 #
-src/
+dump/
+json/
+pdf/

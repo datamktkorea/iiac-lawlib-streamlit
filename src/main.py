@@ -12,7 +12,7 @@ st.set_page_config(
     page_icon="airplane",
 )
 
-st.image("src/assets/datatogo-logo.png", width=360)
+# st.image("src/assets/datatogo-logo.png", width=360)
 st.header("인천국제공항공사 AI 도우미")
 
 if "messages" not in st.session_state:
@@ -33,6 +33,20 @@ if "messages" not in st.session_state:
         }
     ]
 
+st.markdown(
+    """<style> .logo-img { z-index: 999999; position: fixed; top: 12px; width: auto; } .logo-datatogo { left: 24px; height: 40px; } .logo-iiac { right: 24px; height: 50px; }""",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/datatogo-logo.png" class="logo-img logo-datatogo">""",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/iiac-logo.png" class="logo-img logo-iiac">""",
+    unsafe_allow_html=True,
+)
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=message["avatar"]):

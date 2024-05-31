@@ -6,7 +6,7 @@ pipeline {
     }
     environment {
         IMAGE_URL = '531915313382.dkr.ecr.ap-northeast-2.amazonaws.com/biz/iiac-law-web'
-        IMAGE_TAG = '0.1.0'
+        IMAGE_TAG = '0.1.1'
     }
     stages {
         stage('Clone') {

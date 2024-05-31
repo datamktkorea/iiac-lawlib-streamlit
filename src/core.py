@@ -51,7 +51,7 @@ def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = [])
 
 
 def run_llm(query: str):
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
     embeddings = OpenAIEmbeddings()
 
     vector_db = Milvus(

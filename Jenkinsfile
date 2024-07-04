@@ -5,8 +5,8 @@ pipeline {
         }
     }
     environment {
-        IMAGE_URL = '531915313382.dkr.ecr.ap-northeast-2.amazonaws.com/biz/iiac-law-web'
-        IMAGE_TAG = '0.1.2'
+        IMAGE_URL = '531915313382.dkr.ecr.ap-northeast-2.amazonaws.com/biz/iiac-lawlib-api'
+        IMAGE_TAG = '0.1.3'
     }
     stages {
         stage('Clone') {

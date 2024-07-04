@@ -3,3 +3,6 @@ base = "dark"
 
 [client]
 toolbarMode = "minimal"
+
+[server]
+baseUrlPath = "lawlib"

@@ -12,41 +12,52 @@ st.set_page_config(
     page_icon="airplane",
 )
 
-# st.image("src/assets/datatogo-logo.png", width=360)
-st.header("인천국제공항공사 AI 도우미")
+st.image("src/assets/d2g-logo.png", width=360)
+
+st.subheader("사내 규정이 궁금한가요?")
+st.write(
+    """
+:gray[예시 질문:]
+- :gray[국외 출장 절차는 어떻게 진행되나요?]
+- :gray[계약직 채용에 관한 정보를 알려주세요.]
+- :gray[해외 파견 시 고려해야 할 사항은 어떤 것이 있나요?]
+- :gray[TF팀 구성 시 보고해야 할 위치는 어디인가요?]
+"""
+)
+
+# st.header("인천국제공항공사 AI 도우미")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {
-            "role": "ai",
-            "content": """
-            안녕하세요. 현재 버전은 :blue[**PoC용**]이며, 답변 생성에는 :red[**최소 1분에서 최대 5분**]이 소요됩니다.
-            
-            :gray[예시 질문:]
-            - :gray[국외 출장 절차는 어떻게 진행되나요?]
-            - :gray[인천공항공사의 운동 선수단 정보를 알려주세요.]
-            - :gray[계약직 채용에 관한 정보를 알려주세요.]
-            - :gray[해외 파견 시 고려해야 할 사항은 어떤 것이 있나요?]
-            - :gray[TF팀 구성 시 보고해야 할 위치는 어디인가요?]
-            """,
-            "avatar": "src/assets/mdr-logo-180x180.png",
-        }
+        # {
+        #     "role": "ai",
+        #     "content": """
+        #     안녕하세요. 현재 버전은 :blue[**PoC용**]이며, 답변 생성에는 :red[**최소 1분에서 최대 5분**]이 소요됩니다.
+        #     :gray[예시 질문:]
+        #     - :gray[국외 출장 절차는 어떻게 진행되나요?]
+        #     - :gray[인천공항공사의 운동 선수단 정보를 알려주세요.]
+        #     - :gray[계약직 채용에 관한 정보를 알려주세요.]
+        #     - :gray[해외 파견 시 고려해야 할 사항은 어떤 것이 있나요?]
+        #     - :gray[TF팀 구성 시 보고해야 할 위치는 어디인가요?]
+        #     """,
+        #     "avatar": "src/assets/mdr-logo-180x180.png",
+        # }
     ]
 
-st.markdown(
-    """<style> .logo-img { z-index: 999999; position: fixed; top: 12px; width: auto; } .logo-datatogo { left: 24px; height: 40px; } .logo-iiac { right: 24px; height: 50px; }""",
-    unsafe_allow_html=True,
-)
+# st.markdown(
+#     """<style> .logo-img { z-index: 999999; position: fixed; top: 12px; width: auto; } .logo-datatogo { left: 24px; height: 40px; } .logo-iiac { right: 24px; height: 50px; }""",
+#     unsafe_allow_html=True,
+# )
 
-st.markdown(
-    """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/datatogo-logo.png" class="logo-img logo-datatogo">""",
-    unsafe_allow_html=True,
-)
+# st.markdown(
+#     """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/datatogo-logo.png" class="logo-img logo-datatogo">""",
+#     unsafe_allow_html=True,
+# )
 
-st.markdown(
-    """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/iiac-logo.png" class="logo-img logo-iiac">""",
-    unsafe_allow_html=True,
-)
+# st.markdown(
+#     """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/iiac-logo.png" class="logo-img logo-iiac">""",
+#     unsafe_allow_html=True,
+# )
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=message["avatar"]):

@@ -1,0 +1,25 @@
+[project]
+name = "iiac-lawlib-streamlit"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "bs4>=0.0.2",
+    "chromadb>=1.0.20",
+    "langchain==1.0.0a3",
+    "langchain-chroma>=0.2.5",
+    "langchain-community>=0.3.29",
+    "langchain-google-genai>=2.1.10",
+    "langchain-openai>=0.3.32",
+    "openai>=1.107.0",
+    "pykospacing",
+    "pypdf>=6.0.0",
+    "streamlit>=1.49.1",
+]
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.uv.sources]
+pykospacing = { git = "https://github.com/haven-jeon/PyKoSpacing.git" }

@@ -1,9 +1,11 @@
 import streamlit as st
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-
 from app.core import gemini, openai
 
 options = ("OpenAI", "Gemini")
+openai_versions = ("gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo") # TODO : 모델 버전 선택 기능 추가
+gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-pro")
+
 
 # ==================================================================================
 msgs_map = {}
@@ -18,7 +20,10 @@ for k, v in msgs_map.items():
 
 avatar_map = {"ai": "app/assets/mdr-logo-180x180.png", "human": "👨‍💻"}
 
-chain_map = {"openai": openai.get_chain, "gemini": gemini.get_chain}
+chain_map = {
+    "openai": openai.get_chain,
+    "gemini": gemini.get_chain,
+}
 
 # ==================================================================================
 st.set_page_config(
@@ -26,11 +31,35 @@ st.set_page_config(
     page_icon="airplane",
 )
 
-st.header("인천국제공항공사 AI 비서")
+#st.header("인천국제공항공사 AI 비서")
+col1, col2 = st.columns([4, 1])  # 왼쪽(헤더), 오른쪽(selectbox)
 
+with col1:
+    st.header("인천국제공항공사 AI 비서")
+
+
+# open ai / gemini 분기
 option = st.selectbox(
-    "사용할 LLM 모델을 선택해주세요.", options, label_visibility="collapsed", index=0
+    "사용할 LLM 모델을 선택해주세요.", options, label_visibility="collapsed", index=0 # index = 0: 디폴트가 index 0 (open ai) 선택
 )
+
+
+# TODO : 모델별 버전 선택 select box
+with col2: 
+    version_candidates = openai_versions if option == "OpenAI" else gemini_versions
+    version_option = st.selectbox(
+        "모델 버전을 선택해주세요.",
+        version_candidates,
+        label_visibility="collapsed",
+        index=0,
+    )
+
+# TODO : 선택한 버전 gemini.py, openai.py 과 연결
+if option == "OpenAI":
+    openai.build_chain(version_option)
+#else:
+    #gemini.build_chain(version_option)
+
 
 st.write(
     """

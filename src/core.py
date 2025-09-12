@@ -3,14 +3,15 @@ from typing import Any, Dict, List
 
 import openai
 from dotenv import load_dotenv
+from langchain_chroma import Chroma
 from langchain.chains import ConversationalRetrievalChain, LLMChain, RetrievalQA
 from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.vectorstores import Milvus
+from langchain_openai  import OpenAIEmbeddings
+# (4) prompt 가져오기
+from langchain_core.prompts import PromptTemplate
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")  # .env 환경변수 읽어오기
 
 
 def redefine_context(vector_db, query):
@@ -23,24 +24,20 @@ def redefine_context(vector_db, query):
     """
     prompt = PromptTemplate(template=template, input_variables=["context"])
 
-    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
     llm_chain = LLMChain(prompt=prompt, llm=llm)
 
     return llm_chain.run(raw_context)
 
 
 def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = []):
-    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
     embeddings = OpenAIEmbeddings()
 
-    vector_db = Milvus(
+    #ToDo : chroma 로 변경
+    vector_db = Chroma(
         embedding_function=embeddings,
-        collection_name="iiac_poc",
-        connection_args={
-            "uri": os.getenv("ZILLIZ_CLOUD_URI"),
-            "token": os.getenv("ZILLIZ_CLOUD_API_KEY"),
-            "secure": True,
-        },
+        collection_name="iiac_poc"
     )
 
     qa = ConversationalRetrievalChain.from_llm(
@@ -51,17 +48,12 @@ def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = [])
 
 
 def run_llm(query: str):
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
     embeddings = OpenAIEmbeddings()
 
-    vector_db = Milvus(
+    vector_db = Chroma(
         embedding_function=embeddings,
-        collection_name="iiac_poc",
-        connection_args={
-            "uri": os.getenv("ZILLIZ_CLOUD_URI"),
-            "token": os.getenv("ZILLIZ_CLOUD_API_KEY"),
-            "secure": True,
-        },
+        collection_name="iiac_poc"
     )
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(

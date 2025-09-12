@@ -5,18 +5,21 @@ import re
 import time
 from typing import List
 from urllib.parse import parse_qs, urlparse
-
+from langchain_chroma import Chroma
 import openai
 import requests
 from bs4 import BeautifulSoup
 from constants import HEADERS
 from dotenv import load_dotenv
-from langchain.document_loaders import PyPDFLoader
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Milvus
-from pykospacing import Spacing
 
+# (1) 문서 로딩
+# langchain 1.0 이상부터 langchain_community로 로더들 이동
+from langchain_community.document_loaders import PyPDFLoader
+
+# (2) splitter로 문서 분할
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from pykospacing import Spacing  # pypi 공식 레지스트리에서 내려감. github 사용
+from langchain_openai import OpenAIEmbeddings # (3) embedding
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -70,11 +73,11 @@ def download_pdf_files(path):
             f.write(response.content)
 
 
-def insert_pdf_file(path, link_map):
+def insert_pdf_file(path, link_map): # (2) splitter로 문서 분할
     spacing = Spacing()
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings() # (3) embedding
 
-    loader = PyPDFLoader(path)
+    loader = PyPDFLoader(path) 
     raw_documents = loader.load()
 
     link = ""
@@ -97,15 +100,10 @@ def insert_pdf_file(path, link_map):
         document.page_content = re.sub("[\n\s]", "", document.page_content)
         document.page_content = spacing(document.page_content)
 
-    Milvus.from_documents(
+    Chroma.from_documents(
         documents,
         embeddings,
-        collection_name="iiac_poc",
-        connection_args={
-            "uri": os.getenv("ZILLIZ_CLOUD_URI"),
-            "token": os.getenv("ZILLIZ_CLOUD_API_KEY"),
-            "secure": True,
-        },
+        collection_name="iiac_poc"
     )
 
     os.replace(path, "dump/" + path[4:])
@@ -129,7 +127,7 @@ if __name__ == "__main__":
 
     # download_pdf_files("json/iiaclaw.json")
 
-    with open("json/iiaclaw.json") as f:
+    with open("json/iiaclaw.json") as f: 
         link_map = json.load(f)
 
     files = os.listdir("pdf")

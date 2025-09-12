@@ -1,6 +1,6 @@
 import os
-
-from langchain_community.vectorstores import Milvus
+import asyncio
+from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
@@ -8,21 +8,43 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_google_genai import (
     ChatGoogleGenerativeAI,
     GoogleGenerativeAI,
-    GoogleGenerativeAIEmbeddings,
+    GoogleGenerativeAIEmbeddings
 )
 
-vectorstore = Milvus(
-    embedding_function=GoogleGenerativeAIEmbeddings(model="models/embedding-001"),
+from dotenv import load_dotenv
+load_dotenv(".env")
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+def _ensure_event_loop():
+    '''
+    NOTE: There is no current event loop in thread 
+    'ScriptRunner.scriptThread'. 오류 해결 위한 함수.
+    모듈 최상단에서 즉시 인스턴스를 생성하면, Streamlit이 이벤트 루프를 안 만든 상태이기 때문에
+    이런 오류가 종종 발생한다고 함.
+    역할 : 루프가 없을 때, 루프를 생성하는 역할.
+    '''
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+_ensure_event_loop()
+
+
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY,)
+vectorstore = Chroma(
+    embedding_function=embeddings, 
     collection_name="iiac_gemini",
-    connection_args={
-        "uri": os.environ.get("ZILLIZ_CLOUD_URI"),
-        "token": os.environ.get("ZILLIZ_CLOUD_API_KEY"),
-        "secure": True,
-    },
+    persist_directory="./chroma_langchain_db",
 )
 
 retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-llm = GoogleGenerativeAI(model="gemini-pro")
+
+
+# ToDo : app/main.py에서 선택한 버전으로 변경
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, google_api_key=GOOGLE_API_KEY,)
 
 contextualize_q_system_prompt = """
 채팅 기록과 사용자가 최근에 한 질문이 제공되었습니다.

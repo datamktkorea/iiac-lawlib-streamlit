@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import openai
 from dotenv import load_dotenv
-from langchain_chroma import Chroma
+from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain, LLMChain, RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain_openai  import OpenAIEmbeddings
@@ -37,9 +37,9 @@ def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = [])
     #ToDo : chroma 로 변경
     vector_db = Chroma(
         embedding_function=embeddings,
-        collection_name="iiac_poc"
+        collection_name="iiac_poc",
+        persist_directory="iiac-lawlib-streamlit/chroma_langchain_db"
     )
-
     qa = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vector_db.as_retriever(),

@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from app.core import gemini, openai
+from core import openai, gemini
 
 options = ("OpenAI", "Gemini")
 openai_versions = ("gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo") # TODO : 모델 버전 선택 기능 추가
@@ -20,10 +20,6 @@ for k, v in msgs_map.items():
 
 avatar_map = {"ai": "app/assets/mdr-logo-180x180.png", "human": "👨‍💻"}
 
-chain_map = {
-    "openai": openai.get_chain,
-    "gemini": gemini.get_chain,
-}
 
 # ==================================================================================
 st.set_page_config(
@@ -54,11 +50,11 @@ with col2:
         index=0,
     )
 
-# TODO : 선택한 버전 gemini.py, openai.py 과 연결
-if option == "OpenAI":
-    openai.build_chain(version_option)
-#else:
-    #gemini.build_chain(version_option)
+chain_map = {
+    "openai": lambda messages: openai.build_chain(version_option, messages),
+    "gemini": lambda messages: gemini.build_chain(version_option, messages),
+}
+
 
 
 st.write(

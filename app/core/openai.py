@@ -1,6 +1,7 @@
 import os
 import getpass
 from langchain_chroma import Chroma
+
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
@@ -28,7 +29,7 @@ retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k
 
 # ToDo : app/main.py에서 선택한 버전으로 변경
 def build_chain(version_option : str, messages):
-    llm = ChatOpenAI(model_name="selected_version", temperature=0)
+    llm = ChatOpenAI(model_name=version_option, temperature=0)
 
 
     contextualize_q_system_prompt = """
@@ -48,12 +49,12 @@ def build_chain(version_option : str, messages):
     )
 
     def contextualize_q_chain():
-        contextualize_q_prompt | llm | StrOutputParser()
+        return contextualize_q_prompt | llm | StrOutputParser()
 
 
     def contextualized_question(input: dict):
         if input.get("chat_history"):
-            return contextualize_q_chain
+            return contextualize_q_chain().invoke(input) 
         else:
             return input["question"]
 
@@ -105,3 +106,30 @@ def build_chain(version_option : str, messages):
         input_messages_key="question",
         history_messages_key="chat_history",
     )
+
+
+# 임포트 필요
+from pprint import pprint
+
+# 컬렉션에서 모든 데이터를 가져와봅니다
+all_data = vectorstore.get()
+
+# 전체 문서 수 확인
+print(f"총 문서 수: {len(all_data['documents'])}")
+
+# 일부 미리보기
+for i in range(min(5, len(all_data['documents']))):
+    print(f"ID: {all_data['ids'][i]}")
+    print(f"Document: {all_data['documents'][i]}")
+    print(f"Metadata: {all_data['metadatas'][i]}")
+    print("-" * 40)
+
+
+# 클라이언트 객체 직접 접근
+from chromadb import PersistentClient
+client = PersistentClient(path=PERCIST_PATH)
+
+print("✅ 현재 존재하는 컬렉션 목록:")
+collections = client.list_collections()
+for col in collections:
+    print(f" - {col.name}")

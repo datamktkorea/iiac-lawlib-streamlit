@@ -23,7 +23,6 @@ from langchain_openai import OpenAIEmbeddings # (3) embedding
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
 def extract_links(url: str, page: int, result: List[str]):
     response = requests.get(
         url=url + "/current", params={"page": page}, headers=HEADERS
@@ -95,6 +94,11 @@ def insert_pdf_file(path, link_map): # (2) splitter로 문서 분할
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=0)
     documents = text_splitter.split_documents(raw_documents)
+    print(f"[DEBUG] {path} 문서 분할 후 {len(documents)}개 chunk 생성됨")
+    if len(documents) > 0:
+        print(f"[DEBUG] 첫 번째 chunk 내용 샘플:\n{documents[0].page_content[:200]}")
+    else:
+        print("[DEBUG] 문서 chunk가 없습니다.")
 
     for document in documents:
         document.page_content = re.sub("[\n\s]", "", document.page_content)
@@ -103,31 +107,37 @@ def insert_pdf_file(path, link_map): # (2) splitter로 문서 분할
     Chroma.from_documents(
         documents,
         embeddings,
-        collection_name="iiac_poc"
+        collection_name="iiac_poc",
+        persist_directory="./chroma_langchain_db"
     )
 
     os.replace(path, "dump/" + path[4:])
 
     return None
 
-
 if __name__ == "__main__":
     print("Hello IIAC!")
 
-    # target_links = []
+    target_links = []
 
-    # base_page = 1
-    # base_url = "https://www.iiaclaw.kr"
+    base_page = 1
+    base_url = "https://www.iiaclaw.kr"
 
-    # extract_links(base_url, base_page, target_links)
-    # pdf_urls = extract_pdf_urls(base_url, target_links)
+    extract_links(base_url, base_page, target_links)
+    pdf_urls = extract_pdf_urls(base_url, target_links)
 
-    # with open("iiaclaw.json", "w") as f:
-    #     f.write(json.dumps(pdf_urls, ensure_ascii=False, indent=4))
+    os.makedirs("json", exist_ok=True)
+    os.makedirs("pdf", exist_ok=True)
+    os.makedirs("dump", exist_ok=True)
 
-    # download_pdf_files("json/iiaclaw.json")
 
-    with open("json/iiaclaw.json") as f: 
+
+    with open("json/iiaclaw.json", "w") as f:
+        f.write(json.dumps(pdf_urls, ensure_ascii=False, indent=4))
+
+    download_pdf_files("json/iiaclaw.json")
+
+    with open("json/iiaclaw.json") as f:
         link_map = json.load(f)
 
     files = os.listdir("pdf")

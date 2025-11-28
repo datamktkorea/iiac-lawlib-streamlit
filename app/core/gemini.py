@@ -38,23 +38,6 @@ def _ensure_event_loop():
         asyncio.set_event_loop(loop)
 
 
-_ensure_event_loop()
-
-embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001", google_api_key=GOOGLE_API_KEY
-)
-
-
-vectorstore = Chroma(
-    embedding_function=embeddings,
-    collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db",
-)
-
-
-retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-
-
 def build_chain(version_option: str, messages):
     """지정된 Gemini 모델 버전으로 RAG 체인을 구축.
 
@@ -156,3 +139,20 @@ def build_chain(version_option: str, messages):
         input_messages_key="question",
         history_messages_key="chat_history",
     )
+
+
+_ensure_event_loop()
+
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/embedding-001", google_api_key=GOOGLE_API_KEY
+)
+
+
+vectorstore = Chroma(
+    embedding_function=embeddings,
+    collection_name="iiac_poc",
+    persist_directory="./chroma_langchain_db",
+)
+
+
+retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})

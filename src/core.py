@@ -40,7 +40,7 @@ def redefine_context(vector_db, query):
     """
     prompt = PromptTemplate(template=template, input_variables=["context"])
 
-    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4")
     llm_chain = LLMChain(prompt=prompt, llm=llm)
 
     return llm_chain.run(raw_context)
@@ -56,14 +56,13 @@ def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = [])
     Returns:
         dict: 질문에 대한 답변과 관련 메타데이터가 포함된 딕셔너리.
     """
-    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4")
     embeddings = OpenAIEmbeddings()
 
-    # ToDo : chroma 로 변경
     vector_db = Chroma(
         embedding_function=embeddings,
         collection_name="iiac_poc",
-        persist_directory="iiac-lawlib-streamlit/chroma_langchain_db",
+        persist_directory="./chroma_langchain_db",
     )
     qa = ConversationalRetrievalChain.from_llm(
         llm=llm,
@@ -81,10 +80,14 @@ def run_llm(query: str):
     Returns:
         dict: 질의에 대한 답변과 참조 문서가 포함된 딕셔너리.
     """
-    llm = ChatOpenAI(temperature=0, model_name="gpt-5")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4")
     embeddings = OpenAIEmbeddings()
 
-    vector_db = Chroma(embedding_function=embeddings, collection_name="iiac_poc")
+    vector_db = Chroma(
+        embedding_function=embeddings,
+        collection_name="iiac_poc",
+        persist_directory="./chroma_langchain_db",
+    )
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         """

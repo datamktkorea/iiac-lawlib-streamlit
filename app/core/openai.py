@@ -21,17 +21,6 @@ if not os.environ.get("OPENAI_API_KEY"):  # .env 읽어오지 못했을 경우 �
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for Open AI: ")
 
 
-embeddings = OpenAIEmbeddings()
-
-vectorstore = Chroma(
-    embedding_function=embeddings,
-    collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db",
-)
-
-retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-
-
 def build_chain(version_option: str, messages):
     """지정된 OpenAI 모델 버전으로 RAG 체인을 구축.
 
@@ -135,17 +124,13 @@ def build_chain(version_option: str, messages):
     )
 
 
-# 임포트 필요
+embeddings = OpenAIEmbeddings()
 
-# 컬렉션에서 모든 데이터를 가져와봅니다
-all_data = vectorstore.get()
+vectorstore = Chroma(
+    embedding_function=embeddings,
+    collection_name="iiac_poc",
+    persist_directory="./chroma_langchain_db",
+)
 
-# 전체 문서 수 확인
-print(f"총 문서 수: {len(all_data['documents'])}")
-
-# 일부 미리보기
-for i in range(min(5, len(all_data["documents"]))):
-    print(f"ID: {all_data['ids'][i]}")
-    print(f"Document: {all_data['documents'][i]}")
-    print(f"Metadata: {all_data['metadatas'][i]}")
-    print("-" * 40)
+# 유사도 기반 6개 문서 검색
+retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})

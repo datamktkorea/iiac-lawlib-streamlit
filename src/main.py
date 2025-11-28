@@ -1,8 +1,15 @@
+"""인천국제공항공사 사내 규정 질의응답 Streamlit 애플리케이션.
+
+이 모듈은 사용자가 인천국제공항공사의 사내 규정에 대해 질문할 수 있는
+웹 기반 챗봇 인터페이스를 제공합니다.
+"""
+
 import os
 import time
 from datetime import datetime
 
 import streamlit as st
+
 from core import run_llm
 
 os.makedirs("./.logs", exist_ok=True)
@@ -105,9 +112,7 @@ if prompt := st.chat_input("궁금한 사항을 입력해주세요..."):
         with open(f".logs/{timestamp}.txt", "a") as file:
             file.write(f"\n[소요시간]:\n{time.time() - start_time}")
 
-    st.session_state.messages.append(
-        {"role": "user", "content": prompt, "avatar": None}
-    )
+    st.session_state.messages.append({"role": "user", "content": prompt, "avatar": None})
     st.session_state.messages.append(
         {"role": "ai", "content": content, "avatar": "src/assets/mdr-logo-180x180.png"}
     )

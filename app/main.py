@@ -1,18 +1,27 @@
+"""인천국제공항공사 AI 비서 메인 애플리케이션.
+
+이 모듈은 Streamlit을 사용하여 OpenAI와 Gemini 모델을 선택할 수 있는
+채팅 인터페이스를 제공합니다.
+"""
+
 import streamlit as st
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from core import openai, gemini
+
+from core import gemini, openai
 
 options = ("OpenAI", "Gemini")
-openai_versions = ("gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo") # TODO : 모델 버전 선택 기능 추가
+openai_versions = (
+    "gpt-4o-mini",
+    "gpt-4o",
+    "gpt-3.5-turbo",
+)  # TODO : 모델 버전 선택 기능 추가
 gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-pro")
 
 
 # ==================================================================================
 msgs_map = {}
 for opt in options:
-    msgs_map[opt.lower()] = StreamlitChatMessageHistory(
-        key=f"chat_messages_{opt.lower()}"
-    )
+    msgs_map[opt.lower()] = StreamlitChatMessageHistory(key=f"chat_messages_{opt.lower()}")
 
 for k, v in msgs_map.items():
     if len(v.messages) == 0:
@@ -27,7 +36,7 @@ st.set_page_config(
     page_icon="airplane",
 )
 
-#st.header("인천국제공항공사 AI 비서")
+# st.header("인천국제공항공사 AI 비서")
 col1, col2 = st.columns([4, 1])  # 왼쪽(헤더), 오른쪽(selectbox)
 
 with col1:
@@ -36,12 +45,15 @@ with col1:
 
 # open ai / gemini 분기
 option = st.selectbox(
-    "사용할 LLM 모델을 선택해주세요.", options, label_visibility="collapsed", index=0 # index = 0: 디폴트가 index 0 (open ai) 선택
+    "사용할 LLM 모델을 선택해주세요.",
+    options,
+    label_visibility="collapsed",
+    index=0,  # index = 0: 디폴트가 index 0 (open ai) 선택
 )
 
 
 # TODO : 모델별 버전 선택 select box
-with col2: 
+with col2:
     version_candidates = openai_versions if option == "OpenAI" else gemini_versions
     version_option = st.selectbox(
         "모델 버전을 선택해주세요.",
@@ -54,7 +66,6 @@ chain_map = {
     "openai": lambda messages: openai.build_chain(version_option, messages),
     "gemini": lambda messages: gemini.build_chain(version_option, messages),
 }
-
 
 
 st.write(

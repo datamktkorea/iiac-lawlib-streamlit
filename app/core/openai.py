@@ -1,36 +1,48 @@
-import os
-import getpass
-from langchain_chroma import Chroma
+"""OpenAI API를 사용한 RAG(Retrieval-Augmented Generation) 체인 구현.
 
+이 모듈은 인천국제공항공사의 정보를 담은 벡터 데이터베이스를 활용하여
+OpenAI 모델 기반의 질의응답 체인을 구축합니다.
+"""
+
+import getpass
+import os
+
+from dotenv import load_dotenv
+from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from dotenv import load_dotenv
 load_dotenv(".env")
 
 if not os.environ.get("OPENAI_API_KEY"):  # .env 읽어오지 못했을 경우 수동 입력
-  os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for Open AI: ")
+    os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for Open AI: ")
 
 
 embeddings = OpenAIEmbeddings()
 
 vectorstore = Chroma(
-    embedding_function=embeddings, 
+    embedding_function=embeddings,
     collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db"
+    persist_directory="./chroma_langchain_db",
 )
 
 retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
 
+def build_chain(version_option: str, messages):
+    """지정된 OpenAI 모델 버전으로 RAG 체인을 구축.
 
-# ToDo : app/main.py에서 선택한 버전으로 변경
-def build_chain(version_option : str, messages):
+    Args:
+        version_option (str): 사용할 OpenAI 모델 버전.
+        messages: 채팅 메시지 히스토리 객체.
+
+    Returns:
+        RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
+    """
     llm = ChatOpenAI(model_name=version_option, temperature=0)
-
 
     contextualize_q_system_prompt = """
     채팅 기록과 사용자가 최근에 한 질문이 제공되었습니다.
@@ -49,15 +61,26 @@ def build_chain(version_option : str, messages):
     )
 
     def contextualize_q_chain():
+        """질문을 맥락화하는 체인을 생성.
+
+        Returns:
+            Chain: 질문을 독립적으로 이해할 수 있게 재구성하는 체인.
+        """
         return contextualize_q_prompt | llm | StrOutputParser()
 
-
     def contextualized_question(input: dict):
+        """채팅 히스토리를 고려하여 질문을 맥락화.
+
+        Args:
+            input (dict): 질문과 채팅 히스토리가 포함된 입력 딕셔너리.
+
+        Returns:
+            str: 맥락화된 질문 또는 원본 질문.
+        """
         if input.get("chat_history"):
-            return contextualize_q_chain().invoke(input) 
+            return contextualize_q_chain().invoke(input)
         else:
             return input["question"]
-
 
     qa_system_prompt = """
     당신은 이제부터 인천국제공항공사에 대한 모든 정보를 파악하고 있는 전문가 어시스턴트로 활동하게 됩니다.
@@ -78,10 +101,16 @@ def build_chain(version_option : str, messages):
         ]
     )
 
-
     def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+        """검색된 문서들을 하나의 텍스트로 포맷팅.
 
+        Args:
+            docs (list): 검색된 문서 객체들의 리스트.
+
+        Returns:
+            str: 줄바꿈으로 구분된 문서 내용 텍스트.
+        """
+        return "\n\n".join(doc.page_content for doc in docs)
 
     chain_from_docs = (
         RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
@@ -98,8 +127,6 @@ def build_chain(version_option : str, messages):
         }
     ).assign(output=chain_from_docs)
 
-
-
     return RunnableWithMessageHistory(
         chain_with_source,
         lambda session_id: messages,
@@ -109,7 +136,6 @@ def build_chain(version_option : str, messages):
 
 
 # 임포트 필요
-from pprint import pprint
 
 # 컬렉션에서 모든 데이터를 가져와봅니다
 all_data = vectorstore.get()
@@ -118,18 +144,8 @@ all_data = vectorstore.get()
 print(f"총 문서 수: {len(all_data['documents'])}")
 
 # 일부 미리보기
-for i in range(min(5, len(all_data['documents']))):
+for i in range(min(5, len(all_data["documents"]))):
     print(f"ID: {all_data['ids'][i]}")
     print(f"Document: {all_data['documents'][i]}")
     print(f"Metadata: {all_data['metadatas'][i]}")
     print("-" * 40)
-
-
-# 클라이언트 객체 직접 접근
-from chromadb import PersistentClient
-client = PersistentClient(path=PERCIST_PATH)
-
-print("✅ 현재 존재하는 컬렉션 목록:")
-collections = client.list_collections()
-for col in collections:
-    print(f" - {col.name}")

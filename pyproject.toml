@@ -2,8 +2,9 @@
 name = "iiac-lawlib-streamlit"
 version = "0.1.0"
 description = "Add your description here"
+authors = [{ name = "DataMKTKorea", email = "infra@datamarketing.co.kr" }]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "bs4>=0.0.2",
     "dotenv>=0.9.9",
@@ -23,3 +24,60 @@ packages = ["app"]
 
 [tool.uv.sources]
 pykospacing = { git = "https://github.com/haven-jeon/PyKoSpacing.git" }
+
+[dependency-groups]
+dev = ["black>=25.1.0", "pre-commit>=4.3.0", "ruff>=0.12.8"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+skip-string-normalization = false
+include = '\.pyi?$'
+exclude = '''
+/(
+      \.git
+    | \.venv
+    | __pycache__
+    | build
+    | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+select = [
+  "E",    # pycodestyle
+  "F",    # pyflakes
+  "I",    # isort (ruff 내장 import sorter)
+  "D",    # pydocstyle
+  "D401", # First line should be in imperative mood (D를 켰다면 사실상 중복이지만, 의도 드러냄)
+  "T201", # print 사용 금지 (flake8-print)
+  "UP",   # pyupgrade
+]
+ignore = [
+  "UP006",
+  "UP007",
+  # typing_extensions 허용
+  "UP035",
+  # 모든 파라미터에 문서 요구 X
+  "D417",
+  # 줄길이는 Black이 처리
+  "E501",
+]
+
+exclude = [".git", ".venv", "__pycache__", "build", "dist"]
+
+[tool.ruff.lint.per-file-ignores]
+# 하위 폴더까지 확실히 커버하도록 패턴을 넓힙니다.
+"tests/**/*" = ["D", "UP"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# import 정렬 미세 설정(권장)
+[tool.ruff.lint.isort]
+# 프로젝트 루트 패키지명을 넣어두면 1st-party 인식이 정확해집니다.
+# 예: 패키지 디렉터리가 `dmk-template-pyproject/` 라면 아래처럼:
+known-first-party = ["dmk-template-pyproject"]
+combine-as-imports = true
+

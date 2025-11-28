@@ -1,20 +1,36 @@
+"""인천국제공항공사 RAG 시스템의 핵심 로직을 담은 모듈.
+
+이 모듈은 OpenAI GPT 모델과 ChromaDB를 활용하여 문서 기반 질의응답 시스템을
+구현하는 핵심 함수들을 제공합니다.
+"""
+
 import os
 from typing import Any, Dict, List
 
 import openai
 from dotenv import load_dotenv
-from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain, LLMChain, RetrievalQA
 from langchain.chat_models import ChatOpenAI
-from langchain_openai  import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+
 # (4) prompt 가져오기
 from langchain_core.prompts import PromptTemplate
+from langchain_openai import OpenAIEmbeddings
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")  # .env 환경변수 읽어오기
 
 
 def redefine_context(vector_db, query):
+    """벡터 데이터베이스에서 검색한 컨텍스트를 요약하여 재정의.
+
+    Args:
+        vector_db: ChromaDB 벡터 데이터베이스 인스턴스.
+        query: 검색할 질의 문자열.
+
+    Returns:
+        str: LLM이 500자 이내로 요약한 컨텍스트 텍스트.
+    """
     raw_context = vector_db.similarity_search(query=query)
     raw_context = "\n".join([x.page_content for x in raw_context])
 
@@ -31,14 +47,23 @@ def redefine_context(vector_db, query):
 
 
 def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = []):
+    """채팅 히스토리를 고려한 대화형 질의응답 실행.
+
+    Args:
+        question (str): 사용자의 질문.
+        chat_history (List[Dict[str, Any]]): 이전 대화 내역 리스트.
+
+    Returns:
+        dict: 질문에 대한 답변과 관련 메타데이터가 포함된 딕셔너리.
+    """
     llm = ChatOpenAI(temperature=0, model_name="gpt-5")
     embeddings = OpenAIEmbeddings()
 
-    #ToDo : chroma 로 변경
+    # ToDo : chroma 로 변경
     vector_db = Chroma(
         embedding_function=embeddings,
         collection_name="iiac_poc",
-        persist_directory="iiac-lawlib-streamlit/chroma_langchain_db"
+        persist_directory="iiac-lawlib-streamlit/chroma_langchain_db",
     )
     qa = ConversationalRetrievalChain.from_llm(
         llm=llm,
@@ -48,13 +73,18 @@ def run_llm_conversation(question: str, chat_history: List[Dict[str, Any]] = [])
 
 
 def run_llm(query: str):
+    """단일 질의에 대한 RAG 기반 질의응답 실행.
+
+    Args:
+        query (str): 사용자의 질의 문자열.
+
+    Returns:
+        dict: 질의에 대한 답변과 참조 문서가 포함된 딕셔너리.
+    """
     llm = ChatOpenAI(temperature=0, model_name="gpt-5")
     embeddings = OpenAIEmbeddings()
 
-    vector_db = Chroma(
-        embedding_function=embeddings,
-        collection_name="iiac_poc"
-    )
+    vector_db = Chroma(embedding_function=embeddings, collection_name="iiac_poc")
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         """

@@ -1,5 +1,13 @@
-import os
+"""Google Gemini API를 사용한 RAG(Retrieval-Augmented Generation) 체인 구현.
+
+이 모듈은 인천국제공항공사의 정보를 담은 벡터 데이터베이스를 활용하여
+Gemini 모델 기반의 질의응답 체인을 구축합니다.
+"""
+
 import asyncio
+import os
+
+from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -10,38 +18,53 @@ from langchain_google_genai import (
     GoogleGenerativeAIEmbeddings,
 )
 
-from dotenv import load_dotenv
 load_dotenv(".env")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("환경 변수 'GOOGLE_API_KEY'가 설정되지 않았습니다.")
 
+
 def _ensure_event_loop():
+    """이벤트 루프가 존재하는지 확인하고 없으면 새로 생성.
+
+    Streamlit 환경에서 비동기 함수 실행을 위해 필요한 이벤트 루프를
+    설정합니다.
+    """
     try:
         asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
+
 _ensure_event_loop()
 
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/embedding-001", google_api_key=GOOGLE_API_KEY
+)
 
 
 vectorstore = Chroma(
-    embedding_function=embeddings, 
+    embedding_function=embeddings,
     collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db"
+    persist_directory="./chroma_langchain_db",
 )
 
 
 retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
 
+def build_chain(version_option: str, messages):
+    """지정된 Gemini 모델 버전으로 RAG 체인을 구축.
 
-# ToDo : app/main.py에서 선택한 버전으로 변경
-def build_chain(version_option : str, messages):
+    Args:
+        version_option (str): 사용할 Gemini 모델 버전.
+        messages: 채팅 메시지 히스토리 객체.
+
+    Returns:
+        RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
+    """
     llm = GoogleGenerativeAI(model=version_option, google_api_key=GOOGLE_API_KEY)
 
     contextualize_q_system_prompt = """
@@ -61,15 +84,26 @@ def build_chain(version_option : str, messages):
     )
 
     def contextualize_q_chain():
+        """질문을 맥락화하는 체인을 생성.
+
+        Returns:
+            Chain: 질문을 독립적으로 이해할 수 있게 재구성하는 체인.
+        """
         return contextualize_q_prompt | llm | StrOutputParser()
 
-
     def contextualized_question(input: dict):
+        """채팅 히스토리를 고려하여 질문을 맥락화.
+
+        Args:
+            input (dict): 질문과 채팅 히스토리가 포함된 입력 딕셔너리.
+
+        Returns:
+            str: 맥락화된 질문 또는 원본 질문.
+        """
         if input.get("chat_history"):
-            return contextualize_q_chain().invoke(input) 
+            return contextualize_q_chain().invoke(input)
         else:
             return input["question"]
-
 
     qa_system_prompt = """
     당신은 이제부터 인천국제공항공사에 대한 모든 정보를 파악하고 있는 전문가 어시스턴트로 활동하게 됩니다.
@@ -90,10 +124,16 @@ def build_chain(version_option : str, messages):
         ]
     )
 
-
     def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+        """검색된 문서들을 하나의 텍스트로 포맷팅.
 
+        Args:
+            docs (list): 검색된 문서 객체들의 리스트.
+
+        Returns:
+            str: 줄바꿈으로 구분된 문서 내용 텍스트.
+        """
+        return "\n\n".join(doc.page_content for doc in docs)
 
     chain_from_docs = (
         RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
@@ -109,8 +149,6 @@ def build_chain(version_option : str, messages):
             "chat_history": lambda x: x.get("chat_history"),
         }
     ).assign(output=chain_from_docs)
-
-
 
     return RunnableWithMessageHistory(
         chain_with_source,

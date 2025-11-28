@@ -5,9 +5,8 @@
 """
 
 import streamlit as st
-from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-
 from core import gemini, openai
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 
 options = ("OpenAI", "Gemini")
 openai_versions = (

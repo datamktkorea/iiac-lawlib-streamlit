@@ -21,6 +21,23 @@ if not os.environ.get("OPENAI_API_KEY"):  # .env 읽어오지 못했을 경우 �
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for Open AI: ")
 
 
+def set_retriever():
+    """ChromaDB 벡터 데이터베이스에서 검색기(retriever) 설정.
+
+    Returns:
+        retriever: ChromaDB 벡터 데이터베이스의 검색기 인스턴스.
+    """
+    embeddings = OpenAIEmbeddings()
+
+    vector_db = Chroma(
+        embedding_function=embeddings,
+        collection_name="iiac_poc",
+        persist_directory="./chroma_langchain_db",
+    )
+    retriever = vector_db.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    return retriever
+
+
 def build_chain(version_option: str, messages):
     """지정된 OpenAI 모델 버전으로 RAG 체인을 구축.
 
@@ -32,6 +49,7 @@ def build_chain(version_option: str, messages):
         RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
     """
     llm = ChatOpenAI(model_name=version_option, temperature=0)
+    retriever = set_retriever()
 
     contextualize_q_system_prompt = """
     채팅 기록과 사용자가 최근에 한 질문이 제공되었습니다.
@@ -67,7 +85,7 @@ def build_chain(version_option: str, messages):
             str: 맥락화된 질문 또는 원본 질문.
         """
         if input.get("chat_history"):
-            return contextualize_q_chain().invoke(input)
+            return contextualize_q_chain().invoke(input)  # chat_history 있을 때 맥락화
         else:
             return input["question"]
 
@@ -111,8 +129,8 @@ def build_chain(version_option: str, messages):
     chain_with_source = RunnableParallel(
         {
             "context": contextualized_question | retriever,
-            "question": RunnablePassthrough(),
-            "chat_history": lambda x: x.get("chat_history"),
+            "question": RunnablePassthrough(),  # 원본 질문 전달
+            "chat_history": lambda x: x.get("chat_history"),  # 채팅 히스토리 전달
         }
     ).assign(output=chain_from_docs)
 
@@ -122,15 +140,3 @@ def build_chain(version_option: str, messages):
         input_messages_key="question",
         history_messages_key="chat_history",
     )
-
-
-embeddings = OpenAIEmbeddings()
-
-vectorstore = Chroma(
-    embedding_function=embeddings,
-    collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db",
-)
-
-# 유사도 기반 6개 문서 검색
-retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})

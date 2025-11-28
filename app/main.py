@@ -12,9 +12,9 @@ options = ("OpenAI", "Gemini")
 openai_versions = (
     "gpt-4o-mini",
     "gpt-4o",
-    "gpt-3.5-turbo",
+    "gpt-5",
 )
-gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-pro")
+gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
 
 # ==================================================================================

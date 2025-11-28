@@ -15,8 +15,8 @@ from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_google_genai import (
     GoogleGenerativeAI,
-    GoogleGenerativeAIEmbeddings,
 )
+from langchain_openai import OpenAIEmbeddings
 
 load_dotenv(".env")
 
@@ -25,17 +25,25 @@ if not GOOGLE_API_KEY:
     raise ValueError("환경 변수 'GOOGLE_API_KEY'가 설정되지 않았습니다.")
 
 
-def _ensure_event_loop():
-    """이벤트 루프가 존재하는지 확인하고 없으면 새로 생성.
+def set_retriever():
+    """ChromaDB 벡터 데이터베이스에서 검색기(retriever) 설정.
 
-    Streamlit 환경에서 비동기 함수 실행을 위해 필요한 이벤트 루프를
-    설정합니다.
+    Returns:
+        retriever: ChromaDB 벡터 데이터베이스의 검색기 인스턴스.
     """
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # google embeddings 사용 시 429 You exceeded your current quota 오류 발생
+    # embeddings = GoogleGenerativeAIEmbeddings(
+    #     model="models/embedding-001", google_api_key=GOOGLE_API_KEY
+    # )
+    embeddings = OpenAIEmbeddings()
+
+    vector_db = Chroma(
+        embedding_function=embeddings,
+        collection_name="iiac_poc",
+        persist_directory="./chroma_langchain_db",
+    )
+    retriever = vector_db.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    return retriever
 
 
 def build_chain(version_option: str, messages):
@@ -48,7 +56,14 @@ def build_chain(version_option: str, messages):
     Returns:
         RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
     """
+    # 이벤트 루프 강제 설정 (Streamlit 환경 대응)
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
     llm = GoogleGenerativeAI(model=version_option, google_api_key=GOOGLE_API_KEY)
+    retriever = set_retriever()
 
     contextualize_q_system_prompt = """
     채팅 기록과 사용자가 최근에 한 질문이 제공되었습니다.
@@ -139,20 +154,3 @@ def build_chain(version_option: str, messages):
         input_messages_key="question",
         history_messages_key="chat_history",
     )
-
-
-_ensure_event_loop()
-
-embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001", google_api_key=GOOGLE_API_KEY
-)
-
-
-vectorstore = Chroma(
-    embedding_function=embeddings,
-    collection_name="iiac_poc",
-    persist_directory="./chroma_langchain_db",
-)
-
-
-retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})

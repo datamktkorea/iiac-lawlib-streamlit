@@ -26,7 +26,11 @@ packages = ["app"]
 pykospacing = { git = "https://github.com/haven-jeon/PyKoSpacing.git" }
 
 [dependency-groups]
-dev = ["black>=25.1.0", "pre-commit>=4.3.0", "ruff>=0.12.8"]
+dev = [
+    "black>=25.1.0",
+    "pre-commit>=4.3.0",
+    "ruff>=0.12.8",
+]
 
 [tool.black]
 line-length = 100

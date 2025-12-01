@@ -5,7 +5,7 @@
 """
 
 import streamlit as st
-from core import gemini, openai
+from core import rag_chain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 
 options = ("OpenAI", "Gemini")
@@ -51,7 +51,7 @@ with col2:
         index=0,  # index = 0: 디폴트가 index 0 (open ai) 선택
     )
 
-# TODO : 모델별 버전 선택 select box
+
 with col3:
     st.write("")  # 헤더와 라인 맞추기 위한 여백
     version_candidates = openai_versions if option == "OpenAI" else gemini_versions
@@ -61,11 +61,6 @@ with col3:
         label_visibility="collapsed",
         index=0,
     )
-
-chain_map = {
-    "openai": lambda messages: openai.build_chain(version_option, messages),
-    "gemini": lambda messages: gemini.build_chain(version_option, messages),
-}
 
 
 st.write(
@@ -81,9 +76,9 @@ st.write(
 
 if question := st.chat_input("질문을 입력해주세요"):
     config = {"configurable": {"session_id": "any"}}
-    response = chain_map[option.lower()](msgs_map[option.lower()]).invoke(
-        {"question": question}, config
-    )
+    # 선택된 옵션과 버전에 따라 단일 함수 호출
+    chain = rag_chain.build_chain(option, version_option, msgs_map[option.lower()])
+    response = chain.invoke({"question": question}, config)
 
 for msg in msgs_map[option.lower()].messages:
     message = st.chat_message(msg.type, avatar=avatar_map.get(msg.type))

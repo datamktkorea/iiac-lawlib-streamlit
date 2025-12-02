@@ -1,15 +1,17 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
 COPY . .
 
-RUN pip install -r requirements.txt
+# Copy dependency files first for caching
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies
+# --frozen: ensure we use the exact versions from uv.lock
+# --no-dev: do not install development dependencies
+RUN uv sync --frozen --no-dev
 
 EXPOSE 8501
 
-# Old
-ENTRYPOINT ["streamlit", "run", "src/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
-
-# New
-# ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

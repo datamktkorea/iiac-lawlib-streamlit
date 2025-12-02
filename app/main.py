@@ -7,6 +7,7 @@
 import streamlit as st
 from core import rag_chain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+from login import login_screen
 
 options = ("OpenAI", "Gemini")
 openai_versions = (
@@ -33,9 +34,30 @@ avatar_map = {"ai": "app/assets/mdr-logo-180x180.png", "human": "👨‍💻"}
 st.set_page_config(
     page_title="인천국제공항공사 | 생성형 AI",
     page_icon="airplane",
+    initial_sidebar_state="expanded",
 )
 
-# st.header("인천국제공항공사 AI 비서")
+st.markdown(
+    """
+    <style>
+    button[kind="header"] svg {
+        stroke: #ffffff !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+login_screen()
+# ==================================================================================
+# Sidebar 설정
+with st.sidebar:
+    st.header("사용자 정보")
+    st.write(f"환영합니다, {st.user.name}님!")
+    st.button("Logout", on_click=st.logout)
+# ==================================================================================
+# 메인 화면 설정
+
 col1, col2, col3 = st.columns([3, 1, 1])  # 헤더, LLM 모델 선택, 모델 버전 선택
 
 with col1:
@@ -84,6 +106,9 @@ for msg in msgs_map[option.lower()].messages:
     message = st.chat_message(msg.type, avatar=avatar_map.get(msg.type))
     message.write(msg.content)
 
+
+# ==================================================================================
+# 로고 배치
 st.markdown(
     """<style> .logo-img { z-index: 999999; position: fixed; top: 12px; width: auto; } .logo-datatogo { left: 24px; height: 40px; } .logo-iiac { right: 24px; height: 50px; }""",
     unsafe_allow_html=True,
@@ -98,5 +123,6 @@ st.markdown(
     """<img src="https://dmk-mdr-backend-beta.s3.ap-northeast-2.amazonaws.com/media/etc/iiac-logo.png" class="logo-img logo-iiac">""",
     unsafe_allow_html=True,
 )
+
 
 # NOTE: python3 -m streamlit run app/main.py

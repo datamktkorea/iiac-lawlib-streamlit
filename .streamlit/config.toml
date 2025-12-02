@@ -2,6 +2,7 @@
 base = "dark"
 
 [client]
+showSidebarNavigation = false
 toolbarMode = "minimal"
 
 [server]

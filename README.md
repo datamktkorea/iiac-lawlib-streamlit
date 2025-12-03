@@ -7,12 +7,11 @@
 - PROBLEM: 키워드 검색의 한계와 문서 파편화로 인한 업무 비효율
 - GOAL: 생성형 AI를 활용한 정확하고 신속한 규정 검색 및 답변 제공
 <br></br>
-
 # ⚡ 2. Quick Start
 ## 2.1 Requirements
 - Python 3.11 이상
 - Docker & Docker Compose (배포 시)
-- OpenAI 또는 Google Gemini API 키
+- `uv` (Python 패키지 매니저)
 
 ## 2.2 Installation
 ```bash
@@ -24,7 +23,7 @@ uv sync
 ### Local Development
 ```bash
 # Streamlit 앱 실행
-uv run -m streamlit run app/main.py
+uv run streamlit run app/main.py
 ```
 
 ### Production (Docker)
@@ -39,12 +38,11 @@ docker-compose up -d --build
 uv run check_chromadb.py
 ```
 <br></br>
-
 # 🎯 3. Problem Definition
 ## 3.1 주요 문제 정의
-- 수천 페이지에 달하는 규정 문서에서 특정 조항을 찾는데 많은 시간 소요
-- 단순 키워드 매칭으로는 문맥을 고려한 정확한 검색이 어려움
-- 규정 개정 시 최신 정보 반영 및 버전 관리의 어려움
+- **정보 검색의 비효율성**: 수천 페이지에 달하는 규정 문서에서 특정 조항을 찾는데 많은 시간 소요
+- **정확성 부족**: 단순 키워드 매칭으로는 문맥을 고려한 정확한 검색이 어려움
+- **유지보수 어려움**: 규정 개정 시 최신 정보 반영 및 버전 관리가 복잡함
 
 ## 3.2 Context & Constraints
 - **보안**: 사내 규정 데이터의 외부 유출 방지 (On-premise 또는 보안 클라우드 고려)
@@ -56,7 +54,6 @@ uv run check_chromadb.py
 - **ChromaDB**: 로컬 환경에서도 가볍게 운영 가능한 벡터 데이터베이스
 - **LangChain**: 다양한 LLM(OpenAI, Gemini)과 RAG 파이프라인을 유연하게 구성 가능
 <br></br>
-
 # 🏗 4. Architecture Overview
 ## 4.1 System Architecture
 ```
@@ -81,68 +78,73 @@ uv run check_chromadb.py
 - Infra: Docker
 - External Services: OpenAI API, Google Gemini API
 <br></br>
-
 # 📁 5. Directory Structure
 ## 5.1 Project Tree
 ```
 .
-├── .streamlit/          # Streamlit 설정 (config, secrets)
+├── .env.example
+├── .pre-commit-config.yaml
+├── .python-version
+├── Dockerfile
+├── Jenkinsfile
+├── README.md
 ├── app/
-│   ├── assets/          # 로고 및 이미지 리소스
-│   ├── core/            # 핵심 로직 (RAG Chain 등)
-│   ├── login.py         # 로그인 화면 로직
-│   └── main.py          # Streamlit 메인 애플리케이션
-├── chroma_langchain_db/ # ChromaDB 벡터 데이터 저장소
-├── markdown/            # 프로젝트 문서 및 가이드
-├── src/                 # 데이터 수집 및 처리 스크립트
-├── check_chromadb.py    # ChromaDB 상태 확인 유틸리티
-├── docker-compose.yaml  # Docker 배포 설정
-├── Dockerfile           # Docker 이미지 빌드 설정
-├── pyproject.toml       # 프로젝트 의존성 및 설정
-└── uv.lock              # 의존성 잠금 파일
+│   ├── assets/
+│   ├── core/
+│   │   └── rag_chain.py
+│   └── main.py
+├── check_chromadb.py
+├── chroma_langchain_db/
+├── docker-compose.yaml
+├── markdown/
+├── pyproject.toml
+└── uv.lock
 ```
 
 ## 5.2 Folder Roles
 - **app/**: 사용자 인터페이스 및 핵심 비즈니스 로직이 위치한 메인 애플리케이션 폴더
 - **chroma_langchain_db/**: 임베딩된 규정 데이터가 저장된 벡터 데이터베이스 폴더
 - **src/**: 초기 데이터 구축을 위한 크롤링 및 전처리 스크립트 모음
+- **markdown/**: 프로젝트 문서 및 가이드라인
 <br></br>
-
 # ⚙ 6. Configuration
 ## 6.1 Environment Variables
 | Name | Description | Example |
 |------|-------------|---------|
 | OPENAI_API_KEY | OpenAI 모델 사용을 위한 API 키 | sk-... |
 | GOOGLE_API_KEY | Gemini 모델 사용을 위한 API 키 | AIza... |
+| LANGCHAIN_TRACING_V2 | LangSmith 추적 활성화 여부 | true |
+| LANGCHAIN_API_KEY | LangSmith API 키 | lsv2... |
 
 ## 6.2 Config Files
 - **pyproject.toml**: Python 패키지 의존성 및 툴 설정 (Ruff, Black 등)
 - **.env**: 로컬 개발 환경을 위한 환경 변수 파일
-- **.streamlit/secrets.toml**: Streamlit 인증 및 보안 설정
+- **docker-compose.yaml**: Docker 배포 설정
 
 ## 6.3 Dev vs Prod
 - **Dev**: `.env` 파일을 통해 API 키 관리, 로컬 ChromaDB 사용
 - **Prod**: Docker 컨테이너 환경 변수로 키 주입, 볼륨 마운트를 통한 데이터 지속성 보장
 <br></br>
-
 # 🛠 7. Operations Guide
+## 7.1 Deployment
+- Docker 이미지를 빌드하여 배포합니다.
+- `docker-compose.yaml`을 통해 포트(8501) 및 볼륨을 관리합니다.
 
-## 7.1 Restart
+## 7.2 Restart
 ```bash
 docker-compose restart iiaclaw-web
 ```
 
-## 7.2 Logs
+## 7.3 Logs
 - 컨테이너 로그 확인
 ```bash
 docker-compose logs -f iiaclaw-web
 ```
 
-## 7.3 Operational Tasks
+## 7.4 Operational Tasks
 - **데이터 업데이트**: 규정 개정 시 `src/helper.py`를 실행하여 ChromaDB 갱신 필요
 - **API 키 관리**: 만료되거나 유출된 API 키 주기적 교체
 <br></br>
-
 # 🧩 8. Troubleshooting & Caveats
 ## 8.1 Common Issues
 - **ChromaDB 연결 오류**: `sqlite3` 버전 호환성 문제 발생 가능

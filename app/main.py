@@ -50,6 +50,11 @@ st.markdown(
 
 login_screen()
 # ==================================================================================
+# 세션 상태 초기화
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+
 # Sidebar 설정
 with st.sidebar:
     st.header("사용자 정보")
@@ -96,15 +101,29 @@ st.write(
     """
 )
 
-if question := st.chat_input("질문을 입력해주세요"):
-    config = {"configurable": {"session_id": "any"}}
-    # 선택된 옵션과 버전에 따라 단일 함수 호출
-    chain = rag_chain.build_chain(option, version_option, msgs_map[option.lower()])
-    response = chain.invoke({"question": question}, config)
-
+# 1. 기존 메시지 먼저 출력
 for msg in msgs_map[option.lower()].messages:
     message = st.chat_message(msg.type, avatar=avatar_map.get(msg.type))
     message.write(msg.content)
+
+# 2. 사용자 입력 처리
+if question := st.chat_input("질문을 입력해주세요"):
+    # 사용자 메시지 즉시 표시
+    with st.chat_message("human", avatar=avatar_map.get("human")):
+        st.write(question)
+
+    # AI 응답 처리 (스피너 표시)
+    with st.chat_message("ai", avatar=avatar_map.get("ai")):
+        with st.spinner("답변을 생성하고 있습니다..."):
+            config = {"configurable": {"session_id": "any"}}
+            chain = rag_chain.build_chain(option, version_option, msgs_map[option.lower()])
+
+            def stream_generator():
+                for chunk in chain.stream({"question": question}, config):
+                    if "output" in chunk:
+                        yield chunk["output"]
+
+            st.write_stream(stream_generator())
 
 
 # ==================================================================================

@@ -17,6 +17,7 @@ dependencies = [
     "openai>=1.107.0",
     "pykospacing",
     "pypdf>=6.0.0",
+    "setuptools>=80.9.0",
     "streamlit>=1.49.1",
 ]
 

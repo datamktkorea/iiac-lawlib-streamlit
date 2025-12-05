@@ -1,3 +1,4 @@
+'''
 """인천국제공항공사 법률 사이트에서 PDF 문서를 수집하고 벡터화하는 헬퍼 모듈.
 
 이 모듈은 웹 스크래핑을 통해 PDF 파일을 다운로드하고, 이를 처리하여
@@ -145,7 +146,7 @@ def insert_pdf_file(path, link_map):
         print("[DEBUG] 문서 chunk가 없습니다.")
 
     for document in documents:
-        document.page_content = re.sub("[\n\s]", "", document.page_content)
+        document.page_content = re.sub(r"[\n\s]", "", document.page_content)
         document.page_content = spacing(document.page_content)
 
     Chroma.from_documents(
@@ -184,3 +185,4 @@ if __name__ == "__main__":
     for idx, file in enumerate(files):
         print(f"{idx+1}/{len(files)}: {file}")
         insert_pdf_file(os.path.join("pdf", file), link_map)
+'''

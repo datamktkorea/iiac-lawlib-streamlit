@@ -25,7 +25,9 @@ from langchain_chroma import Chroma
 # langchain 1.0 이상부터 langchain_community로 로더들 이동
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_openai import OpenAIEmbeddings  # (3) embedding
-from pykospacing import Spacing  # pypi 공식 레지스트리에서 내려감. github 사용
+from pykospacing import (
+    Spacing,  # pypi 공식 레지스트리에서 내려감. # github에서 import시 모듈 오류로 로컬 패키지 (packages/local-pykospacing)로 분리해 코드 수정 후 사용함.
+)
 
 from constants import HEADERS
 

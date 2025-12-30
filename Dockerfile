@@ -1,15 +1,26 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install git for git dependencies
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY . .
+# Copy dependency files first for caching
+COPY pyproject.toml uv.lock ./
 
-RUN pip install -r requirements.txt
+# Install dependencies
+# --frozen: ensure we use the exact versions from uv.lock
+# --no-dev: do not install development dependencies
+RUN uv sync --frozen --no-dev
+
+# Add .venv/bin to PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY . .
 
 EXPOSE 8501
 
-# Old
-ENTRYPOINT ["streamlit", "run", "src/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
-
-# New
-# ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

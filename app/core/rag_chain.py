@@ -10,63 +10,20 @@ from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 load_dotenv(".env")
 
-if not os.environ.get("OPENAI_API_KEY"):  # .env 읽어오지 못했을 경우 수동 입력
-    raise ValueError("환경 변수 'OPENAI_API_KEY'가 설정되지 않았습니다.")
-if not os.environ.get("GOOGLE_API_KEY"):
-    raise ValueError("환경 변수 'GOOGLE_API_KEY'가 설정되지 않았습니다.")
+# API Key 확인
+for key in ["OPENAI_API_KEY", "GOOGLE_API_KEY"]:
+    if not os.environ.get(key):
+        raise ValueError(f"환경 변수 '{key}'가 설정되지 않았습니다.")
 
 
-def set_retriever():
-    """ChromaDB 벡터 데이터베이스에서 검색기(retriever) 설정.
-
-    Returns:
-        retriever: ChromaDB 벡터 데이터베이스의 검색기 인스턴스.
-    """
-    # google embeddings 사용 시 429 You exceeded your current quota 오류 발생하여 open ai embeddings로 변경
-    # embeddings = GoogleGenerativeAIEmbeddings(
-    #     model="models/embedding-001", google_api_key=GOOGLE_API_KEY, transport="rest"
-    # )
-    embeddings = OpenAIEmbeddings()
-
-    vector_db = Chroma(
-        embedding_function=embeddings,
-        collection_name="iiac_poc",
-        persist_directory="./chroma_langchain_db",
-    )
-    retriever = vector_db.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-    return retriever
-
-
-def build_chain(llm_type: str, version_option: str, messages):
-    """지정된 LLM 타입과 모델 버전으로 RAG 체인을 구축.
-
-    Args:
-        llm_type (str): 사용할 LLM 타입 ("OpenAI" 또는 "Gemini").
-        version_option (str): 사용할 모델 버전.
-        messages: 채팅 메시지 히스토리 객체.
-
-    Returns:
-        RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
-    """
-    match llm_type:
-        case "OpenAI":
-            llm = ChatOpenAI(model_name=version_option, temperature=0)
-        case "Gemini":
-            GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-            llm = GoogleGenerativeAI(model=version_option, google_api_key=GOOGLE_API_KEY)
-        case _:
-            raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
-
-    retriever = set_retriever()
-
-    contextualize_q_system_prompt = """
+contextualize_q_system_prompt = """
     채팅 기록과 사용자가 최근에 한 질문이 제공되었습니다.
     이 질문은 채팅 기록 속의 맥락을 참고할 가능성이 있습니다.
     사용자의 질문을 채팅 기록 없이도 독립적으로 이해할 수 있는 형태로 재구성해 주세요.
@@ -74,37 +31,7 @@ def build_chain(llm_type: str, version_option: str, messages):
     만약 재구성할 필요가 없다면 원래의 질문을 그대로 유지해 주세요.
     """
 
-    contextualize_q_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", contextualize_q_system_prompt),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{question}"),
-        ]
-    )
-
-    def contextualize_q_chain():
-        """질문을 맥락화하는 체인을 생성.
-
-        Returns:
-            Chain: 질문을 독립적으로 이해할 수 있게 재구성하는 체인.
-        """
-        return contextualize_q_prompt | llm | StrOutputParser()
-
-    def contextualized_question(input: dict):
-        """채팅 히스토리를 고려하여 질문을 맥락화.
-
-        Args:
-            input (dict): 질문과 채팅 히스토리가 포함된 입력 딕셔너리.
-
-        Returns:
-            str: 맥락화된 질문 또는 원본 질문.
-        """
-        if input.get("chat_history"):
-            return contextualize_q_chain().invoke(input)  # chat_history 있을 때 맥락화
-        else:
-            return input["question"]
-
-    qa_system_prompt = """
+qa_system_prompt = """
     당신은 이제부터 인천국제공항공사에 대한 모든 정보를 파악하고 있는 전문가 어시스턴트로 활동하게 됩니다.
     아래 제시된 정보를 바탕으로 마지막에 주어진 질문에 대해 답변해주세요.
     만약 답을 모르는 경우, 정직하게 모른다고 답변해주세요. 답변을 지어내려고 하지 마세요.
@@ -115,43 +42,151 @@ def build_chain(llm_type: str, version_option: str, messages):
     {context}
     """
 
-    qa_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", qa_system_prompt),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{question}"),
-        ]
-    )
 
-    def format_docs(docs):
-        """검색된 문서들을 하나의 텍스트로 포맷팅.
+class RAGChainBuilder:
+    """RAG 체인을 구축하고 관리하는 클래스."""
+
+    def __init__(self, llm_type: str, version_option: str):
+        """RAGChainBuilder 인스턴스를 초기화합니다.
 
         Args:
-            docs (list): 검색된 문서 객체들의 리스트.
+            llm_type (str): 사용할 LLM 타입 ("OpenAI" 또는 "Gemini").
+            version_option (str): 사용할 모델 버전.
+        """
+        # LLM(대형 언어 모델) 인스턴스 생성
+        self.llm = self._create_llm(llm_type, version_option)
+        # 벡터 DB 검색기 생성
+        self.retriever = self._create_retriever()
+        # 질문 재구성 체인 생성
+        self.contextualize_chain = self._build_contextualize_chain()
+
+    # ============ LLM & Retriever 생성 ============
+    def _create_llm(self, llm_type: str, version_option: str):
+        """LLM 인스턴스를 생성합니다.
+
+        Args:
+            llm_type (str): 사용할 LLM 타입.
+            version_option (str): 사용할 모델 버전.
 
         Returns:
-            str: 줄바꿈으로 구분된 문서 내용 텍스트.
+            ChatOpenAI | GoogleGenerativeAI: LLM 객체
         """
-        return "\n\n".join(doc.page_content for doc in docs)
+        match llm_type:
+            case "OpenAI":
+                return ChatOpenAI(model_name=version_option, temperature=0)
+            case "Gemini":
+                return GoogleGenerativeAI(
+                    model=version_option,
+                    google_api_key=os.getenv("GOOGLE_API_KEY"),
+                    temperature=0,
+                )
+            case _:
+                raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
 
-    chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
-        | qa_prompt
-        | llm
-        | StrOutputParser()
-    )
+    def _create_retriever(self):
+        """ChromaDB 검색기를 설정합니다.
 
-    chain_with_source = RunnableParallel(
-        {
-            "context": contextualized_question | retriever,
-            "question": RunnablePassthrough(),  # 원본 질문 전달
-            "chat_history": lambda x: x.get("chat_history"),  # 채팅 히스토리 전달
-        }
-    ).assign(output=chain_from_docs)
+        Returns:
+            Retriever: 벡터 DB 검색기
+        """
+        embeddings = OpenAIEmbeddings()
+        vector_db = Chroma(
+            embedding_function=embeddings,
+            collection_name="iiac_poc",
+            persist_directory="./chroma_langchain_db",
+        )
+        return vector_db.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
-    return RunnableWithMessageHistory(
-        chain_with_source,
-        lambda session_id: messages,
-        input_messages_key="question",
-        history_messages_key="chat_history",
-    )
+    # ============ 질문 재구성 체인 ============
+    def _build_contextualize_chain(self):
+        """질문 재구성 체인을 생성합니다.
+
+        Returns:
+            Runnable: 질문 재구성 체인
+        """
+        contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", contextualize_q_system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{question}"),
+            ]
+        )
+        return contextualize_q_prompt | self.llm | StrOutputParser()
+
+    def _contextualize_question(self, input_dict: dict) -> str:
+        """chat_history가 있으면 질문을 재구성하고, 없으면 원래 질문을 그대로 반환합니다.
+
+        Args:
+            input_dict (dict): {"question": str, "chat_history": list}
+
+        Returns:
+            str: 재구성된 질문 또는 원본 질문
+        """
+        if input_dict.get("chat_history"):
+            # chat_history가 있으면 LLM을 통해 질문을 맥락에 맞게 재구성
+            return self.contextualize_chain.invoke(input_dict)
+        # 없으면 원래 질문 반환
+        return input_dict["question"]
+
+    # ============ 전체 체인 ============
+    def build(self, messages):
+        """메시지 히스토리가 포함된 실행 가능한 RAG 체인을 반환합니다.
+
+        Args:
+            messages: 채팅 메시지 히스토리 객체 (예: ChatMessageHistory).
+
+        Returns:
+            RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
+        """
+        # 1. 답변 생성용 프롬프트 및 체인 생성
+        qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", qa_system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{question}"),
+            ]
+        )
+        qa_chain = qa_prompt | self.llm | StrOutputParser()
+
+        # 2. 검색 결과(context)를 문자열로 합쳐서 QA 체인에 주입
+        chain_from_docs = (
+            RunnablePassthrough.assign(
+                context=lambda x: "\n\n".join(doc.page_content for doc in x["context"])
+            )
+            | qa_chain
+        )
+
+        # 3. 전체 RAG 파이프라인 조립
+        # - context: 질문 재구성 → 벡터DB 검색
+        # - question: 원본 질문 그대로 전달
+        # - chat_history: 채팅 기록 전달
+        chain_with_source = RunnableParallel(
+            {
+                "context": RunnableLambda(self._contextualize_question) | self.retriever,
+                "question": RunnablePassthrough(),
+                "chat_history": lambda x: x.get("chat_history", []),
+            }
+        ).assign(output=chain_from_docs)
+
+        # 4. 메시지 히스토리 관리 래퍼로 감싸서 반환
+        return RunnableWithMessageHistory(
+            chain_with_source,
+            lambda session_id: messages,
+            input_messages_key="question",
+            history_messages_key="chat_history",
+        )
+
+
+def build_chain(llm_type: str, version_option: str, messages):
+    """기존 호환성을 위한 래퍼 함수.
+
+    Args:
+        llm_type (str): 사용할 LLM 타입 ("OpenAI" 또는 "Gemini").
+        version_option (str): 사용할 모델 버전.
+        messages: 채팅 메시지 히스토리 객체.
+
+    Returns:
+        RunnableWithMessageHistory: 메시지 히스토리가 포함된 실행 가능한 체인.
+    """
+    builder = RAGChainBuilder(llm_type, version_option)
+    return builder.build(messages)

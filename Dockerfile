@@ -10,6 +10,7 @@ WORKDIR /app
 
 # Copy dependency files first for caching
 COPY pyproject.toml uv.lock ./
+COPY packages/local-pykospacing ./packages/local-pykospacing
 
 # Install dependencies
 # --frozen: ensure we use the exact versions from uv.lock

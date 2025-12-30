@@ -90,7 +90,6 @@ uv run check_chromadb.py
 ├── .pre-commit-config.yaml
 ├── .python-version
 ├── Dockerfile
-├── Jenkinsfile
 ├── README.md
 ├── app/
 │   ├── assets/
@@ -153,7 +152,7 @@ docker-compose logs -f
 - **API Key 에러**: `.env` 파일 또는 환경 변수가 올바르게 설정되었는지 확인
 
 ## 8.2 Known Caveats
-- `chroma_langchain_db` 폴더는 `.gitignore`에 포함되지 않아야 배포 시 데이터가 유지됨 (현재 설정 확인 필요)
+- `chroma_langchain_db` 폴더는 `.gitignore`에 포함되지 않아야 배포 시 데이터가 유지됨
 └── uv.lock
 ```
 

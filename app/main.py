@@ -5,9 +5,9 @@
 """
 
 import streamlit as st
-from core import rag_chain
+from core.rag_chain import build_chain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from login import login_screen
+from streamlit_utils import login_screen, stream_generator
 
 options = ("OpenAI", "Gemini")
 openai_versions = (
@@ -116,14 +116,8 @@ if question := st.chat_input("질문을 입력해주세요"):
     with st.chat_message("ai", avatar=avatar_map.get("ai")):
         with st.spinner("답변을 생성하고 있습니다..."):
             config = {"configurable": {"session_id": "any"}}
-            chain = rag_chain.build_chain(option, version_option, msgs_map[option.lower()])
-
-            def stream_generator():
-                for chunk in chain.stream({"question": question}, config):
-                    if "output" in chunk:
-                        yield chunk["output"]
-
-            st.write_stream(stream_generator())
+            chain = build_chain(option, version_option, msgs_map[option.lower()])
+            st.write_stream(stream_generator(chain, question, config))
 
 
 # ==================================================================================

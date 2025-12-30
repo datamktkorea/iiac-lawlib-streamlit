@@ -96,7 +96,7 @@ uv run check_chromadb.py
 │   ├── core/
 │   │   └── rag_chain.py
 │   └── main.py
-├── check_chromadb.py
+├── check_chromadb.py  # `chroma_langchain_db` 폴더는 `.gitignore`에 포함되지 않아야 배포 시 데이터가 유지됨
 ├── chroma_langchain_db/
 ├── docker-compose.yaml
 ├── markdown/
@@ -116,6 +116,7 @@ uv run check_chromadb.py
 - `src/`: 데이터 수집 및 전처리 스크립트
 - `markdown/`: 프로젝트 문서 및 가이드
 <br></br>
+
 # ⚙ 6. Configuration
 ## 6.1 Environment Variables
 | Name | Description | Example |
@@ -146,66 +147,9 @@ docker-compose restart
 docker-compose logs -f
 ```
 <br></br>
-# 🧩 8. Troubleshooting & Caveats
+
+# 🧩 8. Troubleshooting
 ## 8.1 Common Issues
 - **PyKoSpacing 관련 에러**: 로컬 패키지 경로가 올바른지 확인 (`packages/local-pykospacing`)
 - **API Key 에러**: `.env` 파일 또는 환경 변수가 올바르게 설정되었는지 확인
 
-## 8.2 Known Caveats
-- `chroma_langchain_db` 폴더는 `.gitignore`에 포함되지 않아야 배포 시 데이터가 유지됨
-└── uv.lock
-```
-
-## 5.2 Folder Roles
-- **app/**: 사용자 인터페이스 및 핵심 비즈니스 로직이 위치한 메인 애플리케이션 폴더
-- **chroma_langchain_db/**: 임베딩된 규정 데이터가 저장된 벡터 데이터베이스 폴더
-- **src/**: 초기 데이터 구축을 위한 크롤링 및 전처리 스크립트 모음
-- **markdown/**: 프로젝트 문서 및 가이드라인
-<br></br>
-# ⚙ 6. Configuration
-## 6.1 Environment Variables
-| Name | Description | Example |
-|------|-------------|---------|
-| OPENAI_API_KEY | OpenAI 모델 사용을 위한 API 키 | sk-... |
-| GOOGLE_API_KEY | Gemini 모델 사용을 위한 API 키 | AIza... |
-| LANGCHAIN_TRACING_V2 | LangSmith 추적 활성화 여부 | true |
-| LANGCHAIN_API_KEY | LangSmith API 키 | lsv2... |
-
-## 6.2 Config Files
-- **pyproject.toml**: Python 패키지 의존성 및 툴 설정 (Ruff, Black 등)
-- **.env**: 로컬 개발 환경을 위한 환경 변수 파일
-- **docker-compose.yaml**: Docker 배포 설정
-
-## 6.3 Dev vs Prod
-- **Dev**: `.env` 파일을 통해 API 키 관리, 로컬 ChromaDB 사용
-- **Prod**: Docker 컨테이너 환경 변수로 키 주입, 볼륨 마운트를 통한 데이터 지속성 보장
-<br></br>
-# 🛠 7. Operations Guide
-## 7.1 Deployment
-- Docker 이미지를 빌드하여 배포합니다.
-- `docker-compose.yaml`을 통해 포트(8501) 및 볼륨을 관리합니다.
-
-## 7.2 Restart
-```bash
-docker-compose restart iiaclaw-web
-```
-
-## 7.3 Logs
-- 컨테이너 로그 확인
-```bash
-docker-compose logs -f iiaclaw-web
-```
-
-## 7.4 Operational Tasks
-- **데이터 업데이트**: 규정 개정 시 `src/helper.py`를 실행하여 ChromaDB 갱신 필요
-- **API 키 관리**: 만료되거나 유출된 API 키 주기적 교체
-<br></br>
-# 🧩 8. Troubleshooting & Caveats
-## 8.1 Common Issues
-- **ChromaDB 연결 오류**: `sqlite3` 버전 호환성 문제 발생 가능
-  - 원인: 구버전 Python/SQLite 사용
-  - 해결: Python 3.10 이상 권장, `pysqlite3-binary` 설치 고려
-
-## 8.2 Known Caveats
-- 현재 PoC 버전으로, 답변 생성에 30초~3분 정도 소요될 수 있습니다.
-- 할루시네이션 가능성이 있으므로 중요 법적 판단 시 원문 확인이 필요합니다.

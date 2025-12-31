@@ -13,3 +13,6 @@ client_id = "${client_id}"
 client_secret = "${client_secret}"
 server_metadata_url = "${server_metadata_url}"
 EOF
+
+# 원래 CMD 실행
+exec "$@"

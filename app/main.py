@@ -21,7 +21,7 @@ openai_versions = (
 gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
 # ==================================================================================
-# Streamlit Secrets 설정 (secrets.toml 파일을 쓰지 못하는 상황일 경우 대체)
+# Streamlit Secrets 설정 (secrets.toml 파일을 대체)
 secrets_singleton._secrets = {
     "auth": {
         "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),

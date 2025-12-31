@@ -4,9 +4,12 @@
 채팅 인터페이스를 제공합니다.
 """
 
+import os
+
 import streamlit as st
 from core.rag_chain import build_chain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+from streamlit.runtime.secrets import secrets_singleton
 from streamlit_utils import login_screen, stream_generator
 
 options = ("OpenAI", "Gemini")
@@ -17,6 +20,17 @@ openai_versions = (
 )
 gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
+# ==================================================================================
+# Streamlit Secrets 설정 (secrets.toml 파일을 쓰지 못하는 상황일 경우 대체)
+secrets_singleton._secrets = {
+    "auth": {
+        "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),
+        "cookie_secret": os.getenv("STREAMLIT_COOKIE_SECRET"),
+        "client_id": os.getenv("STREAMLIT_CLIENT_ID"),
+        "client_secret": os.getenv("STREAMLIT_CLIENT_SECRET"),
+        "server_metadata_url": os.getenv("STREAMLIT_SERVER_METADATA_URL"),
+    }
+}
 
 # ==================================================================================
 msgs_map = {}

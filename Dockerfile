@@ -21,6 +21,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY . .
 
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8501
 
-ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["/app/entrypoint.sh"]

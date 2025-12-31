@@ -15,7 +15,7 @@
 
 ## 2.2 Installation
 ```bash
-# uv 패키지 매니저 사용 시 (로컬 패키지 포함 설치)
+# uv 패키지 매니저 사용 시
 uv sync
 ```
 
@@ -53,15 +53,15 @@ uv run check_chromadb.py
 - **Streamlit**: 빠른 프로토타이핑과 직관적인 챗봇 UI 구현 용이
 - **ChromaDB**: 로컬 환경에서도 가볍게 운영 가능한 벡터 데이터베이스
 - **LangChain**: 다양한 LLM(OpenAI, Gemini)과 RAG 파이프라인을 유연하게 구성 가능
-- **Local PyKoSpacing**: 
-    - 한국어 띄어쓰기 교정을 위해 사용하던 `PyKoSpacing` 라이브러리의 `tensorflow.keras.layers.TFSMLayer` 임포트 에러 및 `pkg_resources` Deprecation Warning 문제를 해결하기 위해 로컬 패키지로 전환
+- **Kiwi (kiwipiepy)**:
+    - 한국어 띄어쓰기 교정을 위해 Kiwi 기반 전처리 사용
 <br></br>
 # 🏗 4. Architecture Overview
 ## 4.1 System Architecture
 ```
 [PDF Documents] 
       ↓
-[Helper Script (src/helper.py)] -> [Local PyKoSpacing (Preprocessing)] -> [ChromaDB (Vector Store)]
+[Helper Script (src/helper.py)] -> [Kiwi (Preprocessing)] -> [ChromaDB (Vector Store)]
       ↓
 [RAG Chain (app/core/rag_chain.py)] 
       ↓
@@ -70,7 +70,7 @@ uv run check_chromadb.py
 
 ## 4.2 Data / Processing Flow
 - Step 1: `src/helper.py`를 통해 IIAC 법률 사이트에서 PDF 문서 수집 및 텍스트 추출
-- Step 2: 추출된 텍스트를 `PyKoSpacing` 로컬 패키지를 사용하여 띄어쓰기 교정 및 전처리
+- Step 2: 추출된 텍스트를 `kiwipiepy`로 띄어쓰기 교정 및 전처리
 - Step 3: 전처리된 텍스트를 청크(Chunk) 단위로 분할하고 임베딩하여 ChromaDB에 저장
 - Step 4: 사용자가 Streamlit UI에서 질문 입력 시, RAG Chain이 관련 문서 검색
 - Step 5: 검색된 문맥과 질문을 LLM(OpenAI/Gemini)에 전달하여 답변 생성 및 표출
@@ -80,7 +80,7 @@ uv run check_chromadb.py
 - DB: ChromaDB (SQLite 기반 벡터 저장소)
 - Infra: Docker
 - External Services: OpenAI API, Google Gemini API
-- Local Packages: PyKoSpacing (한국어 전처리)
+- Packages: Kiwi (한국어 전처리)
 <br></br>
 # 📁 5. Directory Structure
 ## 5.1 Project Tree
@@ -100,8 +100,6 @@ uv run check_chromadb.py
 ├── chroma_langchain_db/
 ├── docker-compose.yaml
 ├── markdown/
-├── packages/
-│   └── local-pykospacing/  # 로컬화된 한국어 띄어쓰기 패키지
 ├── pyproject.toml
 ├── src/
 │   ├── constants.py
@@ -126,7 +124,7 @@ uv run check_chromadb.py
 
 ## 6.2 Config Files
 - `pyproject.toml`: 프로젝트 의존성 및 빌드 설정 (uv 관리)
-- `packages/local-pykospacing/pyproject.toml`: 로컬 패키지 설정
+- `pyproject.toml`: Kiwi(kiwipiepy) 의존성 설정
 
 ## 6.3 Dev vs Prod
 - Dev: `.env` 파일을 통해 환경 변수 로드, 로컬 ChromaDB 사용
@@ -150,6 +148,5 @@ docker-compose logs -f
 
 # 🧩 8. Troubleshooting
 ## 8.1 Common Issues
-- **PyKoSpacing 관련 에러**: 로컬 패키지 경로가 올바른지 확인 (`packages/local-pykospacing`)
+- **Kiwi 관련 에러**: 설치 상태 및 네트워크 접근 확인
 - **API Key 에러**: `.env` 파일 또는 환경 변수가 올바르게 설정되었는지 확인
-

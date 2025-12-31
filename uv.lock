@@ -128,15 +128,6 @@ wheels = [
 ]
 
 [[package]]
-name = "argparse"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/dd/e617cfc3f6210ae183374cd9f6a26b20514bbb5a792af97949c5aacddf0f/argparse-1.4.0.tar.gz", hash = "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4", size = 70508, upload-time = "2015-09-12T20:22:16.217Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl", hash = "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314", size = 23000, upload-time = "2015-09-14T16:03:16.137Z" },
-]
-
-[[package]]
 name = "astunparse"
 version = "1.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -998,6 +989,7 @@ dependencies = [
     { name = "authlib" },
     { name = "bs4" },
     { name = "dotenv" },
+    { name = "kiwipiepy" },
     { name = "langchain" },
     { name = "langchain-chroma" },
     { name = "langchain-community" },
@@ -1005,7 +997,6 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "numpy" },
     { name = "openai" },
-    { name = "pykospacing" },
     { name = "pypdf" },
     { name = "setuptools" },
     { name = "streamlit" },
@@ -1024,6 +1015,7 @@ requires-dist = [
     { name = "authlib", specifier = ">=1.6.5" },
     { name = "bs4", specifier = ">=0.0.2" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "kiwipiepy", specifier = ">=0.20.0" },
     { name = "langchain", specifier = "==1.0.0a3" },
     { name = "langchain-chroma", specifier = ">=0.2.6" },
     { name = "langchain-community", specifier = ">=0.3.29" },
@@ -1031,7 +1023,6 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.3.32" },
     { name = "numpy", specifier = "<2" },
     { name = "openai", specifier = ">=1.107.0" },
-    { name = "pykospacing", editable = "packages/local-pykospacing" },
     { name = "pypdf", specifier = ">=6.0.0" },
     { name = "setuptools", specifier = ">=80.9.0" },
     { name = "streamlit", specifier = ">=1.49.1" },
@@ -1166,6 +1157,30 @@ sdist = { url = "https://files.pythonhosted.org/packages/b5/03/80072f4ee46e3c77e
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fc/a7/0d4490de967a67f68a538cc9cdb259bff971c4b5787f7765dc7c8f118f71/keras-2.15.0-py3-none-any.whl", hash = "sha256:2dcc6d2e30cf9c951064b63c1f4c404b966c59caf09e01f3549138ec8ee0dd1f", size = 1710438, upload-time = "2023-11-07T00:39:55.57Z" },
 ]
+
+[[package]]
+name = "kiwipiepy"
+version = "0.22.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "kiwipiepy-model" },
+    { name = "numpy" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/90/e1/e407471d8306e8a43fefff54e5bcd51feb77cc28cf4033be8ad0d5f6fadc/kiwipiepy-0.22.2.tar.gz", hash = "sha256:4a8a4b17b6b229a7e315af1e45727aa21a73ee529a9471161558bf05674b9658", size = 2429596, upload-time = "2025-12-15T15:13:24.214Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/84/4d59d0538507399f973e449a1ad2b39da0cc998f16b2e986ce6daf7128fb/kiwipiepy-0.22.2-cp39-abi3-macosx_10_14_x86_64.whl", hash = "sha256:3db88b1756010ce6e192f047ec5b2ed9711c3ab3390e19d5fa590542c6cd39e6", size = 8840234, upload-time = "2025-12-15T15:27:28.742Z" },
+    { url = "https://files.pythonhosted.org/packages/19/ee/2cbb1dd9cf5bf26c5620ca325fcef27a7b20772fc3b2374fab80be4ef7b2/kiwipiepy-0.22.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:bc0f54282b6bb64046aa94e1f8dc66f99f67fb626a0a283dcba24981e607852e", size = 3507298, upload-time = "2025-12-15T15:14:19.877Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/84/ca2733d860b6c973b8585f419132ec557c8e3801e11b5fe6f11958be6cb7/kiwipiepy-0.22.2-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:f71dcc85f870a82c6290a5824cee2f744df2cd05ad7a5e4cbd40184f69bb284e", size = 3025751, upload-time = "2025-12-15T15:20:01.102Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/a6/71fe6cbcdc306748c23a8da54525055adab994167d18fdf19acb92816ece/kiwipiepy-0.22.2-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:628e468d55acec204b71720fc6f9a29994edbae0512e31be0a46e9efa9eb56bc", size = 5914603, upload-time = "2025-12-15T15:38:28.534Z" },
+    { url = "https://files.pythonhosted.org/packages/10/d9/be3009a2fd00b4892566f9139bb161e267c943811345524f59408ee8f373/kiwipiepy-0.22.2-cp39-abi3-win_amd64.whl", hash = "sha256:cadbbbb877e381e39d2d4efbdabc053458e0e29756ff0a2b41cc611ff0f2f1af", size = 2514919, upload-time = "2025-12-15T15:27:51.881Z" },
+]
+
+[[package]]
+name = "kiwipiepy-model"
+version = "0.22.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/a1/f6d1113784dc3669d1ac4e4be1584af206a1aa7daa952a8805213324256e/kiwipiepy_model-0.22.1.tar.gz", hash = "sha256:c2359920c9f6d66b131452c905a3c8792305f9bdee6cedbe6088d0430653fd8b", size = 79496954, upload-time = "2025-12-15T15:38:39.331Z" }
 
 [[package]]
 name = "kubernetes"
@@ -2218,23 +2233,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
-]
-
-[[package]]
-name = "pykospacing"
-version = "0.5"
-source = { editable = "packages/local-pykospacing" }
-dependencies = [
-    { name = "argparse" },
-    { name = "h5py" },
-    { name = "tensorflow" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "argparse" },
-    { name = "h5py" },
-    { name = "tensorflow" },
 ]
 
 [[package]]

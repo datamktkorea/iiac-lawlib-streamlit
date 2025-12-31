@@ -16,7 +16,7 @@ dependencies = [
     "langchain-openai>=0.3.32",
     "numpy<2",
     "openai>=1.107.0",
-    "pykospacing",
+    "kiwipiepy>=0.20.0",
     "pypdf>=6.0.0",
     "setuptools>=80.9.0",
     "streamlit>=1.49.1",
@@ -26,8 +26,6 @@ dependencies = [
 [tool.setuptools]
 packages = ["app"]
 
-[tool.uv.sources] # 원래는 github에서 가져오지만, 모듈 에러로 인해 로컬 패키지로 분리 후 코드 수정하여 대체
-pykospacing = { path = "packages/local-pykospacing", editable = true }
 
 [dependency-groups]
 dev = [
@@ -88,4 +86,3 @@ convention = "google"
 # 예: 패키지 디렉터리가 `dmk-template-pyproject/` 라면 아래처럼:
 known-first-party = ["dmk-template-pyproject"]
 combine-as-imports = true
-

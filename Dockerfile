@@ -14,6 +14,7 @@ COPY pyproject.toml uv.lock ./
 # Install dependencies
 # --frozen: ensure we use the exact versions from uv.lock
 # --no-dev: do not install development dependencies
+COPY packages ./packages
 RUN uv sync --frozen --no-dev
 
 # Add .venv/bin to PATH

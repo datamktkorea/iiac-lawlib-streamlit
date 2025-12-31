@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy dependency files first for caching
-COPY pyproject.toml uv.lock ./
-COPY packages/local-pykospacing ./packages/local-pykospacing
+# entrypoint 복사 + 실행권한
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 
 # Install dependencies
 # --frozen: ensure we use the exact versions from uv.lock
@@ -24,4 +26,5 @@ COPY . .
 
 EXPOSE 8501
 
-ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

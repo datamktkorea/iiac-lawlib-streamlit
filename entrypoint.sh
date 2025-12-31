@@ -7,7 +7,7 @@ mkdir -p .streamlit
 
 cat > .streamlit/secrets.toml <<EOF
 [auth]
-redirect_uri = "${redicrect_uri}"
+redirect_uri = "${redirect_uri}"
 cookie_secret = "${cookie_secret}"
 client_id = "${client_id}"
 client_secret = "${client_secret}"

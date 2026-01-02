@@ -45,39 +45,6 @@ def ensure_secrets_toml() -> None:
 
 ensure_secrets_toml()
 
-
-def _get_env_value(primary: str, fallback: str) -> str | None:
-    return os.getenv(primary) or os.getenv(fallback)
-
-
-def ensure_secrets_toml() -> None:
-    """Create .streamlit/secrets.toml from env if it does not exist."""
-    secrets_path = os.path.join(".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        return
-
-    redirect_uri = _get_env_value("redirect_uri", "redirect_uri")
-    cookie_secret = _get_env_value("cookie_secret", "cookie_secret")
-    client_id = _get_env_value("client_id", "client_id")
-    client_secret = _get_env_value("client_secret", "client_secret")
-    server_metadata_url = _get_env_value("server_metadata_url", "server_metadata_url")
-    if not all([redirect_uri, cookie_secret, client_id, client_secret, server_metadata_url]):
-        return
-
-    os.makedirs(os.path.dirname(secrets_path), exist_ok=True)
-    with open(secrets_path, "w", encoding="utf-8") as f:
-        f.write(
-            "[auth]\n"
-            f'redirect_uri = "{redirect_uri}"\n'
-            f'cookie_secret = "{cookie_secret}"\n'
-            f'client_id = "{client_id}"\n'
-            f'client_secret = "{client_secret}"\n'
-            f'server_metadata_url = "{server_metadata_url}"\n'
-        )
-
-
-ensure_secrets_toml()
-
 options = ("OpenAI", "Gemini")
 openai_versions = (
     "gpt-4o-mini",

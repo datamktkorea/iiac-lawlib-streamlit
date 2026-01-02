@@ -22,6 +22,40 @@ def ensure_secrets_toml() -> None:
     if os.path.exists(secrets_path):
         return
 
+    redirect_uri = _get_env_value("redirect_uri", "STREAMLIT_REDIRECT_URI")
+    cookie_secret = _get_env_value("cookie_secret", "STREAMLIT_COOKIE_SECRET")
+    client_id = _get_env_value("client_id", "STREAMLIT_CLIENT_ID")
+    client_secret = _get_env_value("client_secret", "STREAMLIT_CLIENT_SECRET")
+    server_metadata_url = _get_env_value("server_metadata_url", "STREAMLIT_SERVER_METADATA_URL")
+
+    if not all([redirect_uri, cookie_secret, client_id, client_secret, server_metadata_url]):
+        return
+
+    os.makedirs(os.path.dirname(secrets_path), exist_ok=True)
+    with open(secrets_path, "w", encoding="utf-8") as f:
+        f.write(
+            "[auth]\n"
+            f'redirect_uri = "{redirect_uri}"\n'
+            f'cookie_secret = "{cookie_secret}"\n'
+            f'client_id = "{client_id}"\n'
+            f'client_secret = "{client_secret}"\n'
+            f'server_metadata_url = "{server_metadata_url}"\n'
+        )
+
+
+ensure_secrets_toml()
+
+
+def _get_env_value(primary: str, fallback: str) -> str | None:
+    return os.getenv(primary) or os.getenv(fallback)
+
+
+def ensure_secrets_toml() -> None:
+    """Create .streamlit/secrets.toml from env if it does not exist."""
+    secrets_path = os.path.join(".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        return
+
     redirect_uri = _get_env_value("redirect_uri", "redirect_uri")
     cookie_secret = _get_env_value("cookie_secret", "cookie_secret")
     client_id = _get_env_value("client_id", "client_id")
@@ -53,6 +87,16 @@ openai_versions = (
 gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
 # ==================================================================================
+# Streamlit Secrets 설정 (secrets.toml 파일을 대체)
+secrets_singleton._secrets = {
+    "auth": {
+        "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),
+        "cookie_secret": os.getenv("STREAMLIT_COOKIE_SECRET"),
+        "client_id": os.getenv("STREAMLIT_CLIENT_ID"),
+        "client_secret": os.getenv("STREAMLIT_CLIENT_SECRET"),
+        "server_metadata_url": os.getenv("STREAMLIT_SERVER_METADATA_URL"),
+    }
+}
 
 # ==================================================================================
 msgs_map = {}

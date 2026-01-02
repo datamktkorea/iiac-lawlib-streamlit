@@ -88,15 +88,15 @@ gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
 # ==================================================================================
 # Streamlit Secrets 설정 (secrets.toml 파일을 대체)
-secrets_singleton._secrets = {
-    "auth": {
-        "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),
-        "cookie_secret": os.getenv("STREAMLIT_COOKIE_SECRET"),
-        "client_id": os.getenv("STREAMLIT_CLIENT_ID"),
-        "client_secret": os.getenv("STREAMLIT_CLIENT_SECRET"),
-        "server_metadata_url": os.getenv("STREAMLIT_SERVER_METADATA_URL"),
-    }
-}
+# secrets_singleton._secrets = {
+#     "auth": {
+#         "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),
+#         "cookie_secret": os.getenv("STREAMLIT_COOKIE_SECRET"),
+#         "client_id": os.getenv("STREAMLIT_CLIENT_ID"),
+#         "client_secret": os.getenv("STREAMLIT_CLIENT_SECRET"),
+#         "server_metadata_url": os.getenv("STREAMLIT_SERVER_METADATA_URL"),
+#     }
+# }
 
 # ==================================================================================
 msgs_map = {}

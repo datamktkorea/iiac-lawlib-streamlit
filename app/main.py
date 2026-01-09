@@ -70,7 +70,10 @@ if "messages" not in st.session_state:
 
 # Sidebar 설정
 with st.sidebar:
-    st.header("환영합니다!")
+    st.markdown(
+        "<h3 style='margin-top:-16px;margin-bottom:0;font-size:1.4rem;'>환영합니다!</h3>",
+        unsafe_allow_html=True,
+    )
     st.button("Logout", on_click=st.logout)
 
 # ==================================================================================

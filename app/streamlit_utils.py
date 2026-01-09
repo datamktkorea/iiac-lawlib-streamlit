@@ -1,3 +1,7 @@
+"""Streamlit 로그인 및 secrets.toml 파일 생성을 위한 유틸리티 함수들입니다."""
+
+import os
+
 import streamlit as st
 
 
@@ -33,6 +37,80 @@ def login_screen():
 
 
 def stream_generator(chain, question, config):
+    """Stream answer chunks and remember the latest source metadata."""
+    sources = []
     for chunk in chain.stream({"question": question}, config):
         if "output" in chunk:
             yield chunk["output"]
+        if "source_documents" in chunk:
+            documents = chunk["source_documents"]
+            sources = [dict(metadata or {}) for metadata in documents]
+    st.session_state["latest_sources"] = sources
+
+
+def _get_env_value(primary: str, fallback: str) -> str | None:
+    """Get environment variable value with a fallback option."""
+    return os.getenv(primary) or os.getenv(fallback)
+
+
+def ensure_secrets_toml() -> None:
+    """Create .streamlit/secrets.toml from env if it does not exist."""
+    secrets_path = os.path.join(".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        return
+
+    redirect_uri = _get_env_value("redirect_uri", "STREAMLIT_REDIRECT_URI")
+    cookie_secret = _get_env_value("cookie_secret", "STREAMLIT_COOKIE_SECRET")
+    client_id = _get_env_value("client_id", "STREAMLIT_CLIENT_ID")
+    client_secret = _get_env_value("client_secret", "STREAMLIT_CLIENT_SECRET")
+    server_metadata_url = _get_env_value("server_metadata_url", "STREAMLIT_SERVER_METADATA_URL")
+
+    if not all([redirect_uri, cookie_secret, client_id, client_secret, server_metadata_url]):
+        return
+
+    os.makedirs(os.path.dirname(secrets_path), exist_ok=True)
+    with open(secrets_path, "w", encoding="utf-8") as f:
+        f.write(
+            "[auth]\n"
+            f'redirect_uri = "{redirect_uri}"\n'
+            f'cookie_secret = "{cookie_secret}"\n'
+            f'client_id = "{client_id}"\n'
+            f'client_secret = "{client_secret}"\n'
+            f'server_metadata_url = "{server_metadata_url}"\n'
+        )
+
+
+# ==================================================================================
+def _render_reference_list(metadata_list):
+    """RAG 답변의 출처 문서 목록을 렌더링합니다.
+
+    :param metadata_list: 출처 문서 메타데이터 리스트
+    """
+    if not metadata_list:
+        return
+    st.markdown("##### 참고 문서:")
+    grouped = {}
+    for metadata in metadata_list:
+        if not isinstance(metadata, dict):
+            continue
+        key = (metadata.get("source", "출처 미상"), metadata.get("link"))
+        grouped.setdefault(key, []).append(metadata.get("page"))
+
+    rendered_items = []
+    for (name, link), pages in grouped.items():
+        sorted_pages = sorted(
+            (p for p in pages if p is not None),
+            key=lambda p: (int(p) if str(p).isdigit() else p),
+        )
+        page_text = ", ".join(str(p) for p in sorted_pages) + " 페이지" if sorted_pages else ""
+        if link:
+            link_html = f"<a href='{link}' target='_blank'>{name}</a>"
+        else:
+            link_html = name
+
+        rendered_items.append(f"<div style='margin-bottom:4px;'>- {link_html}: {page_text}</div>")
+
+    st.markdown("\n".join(rendered_items), unsafe_allow_html=True)
+
+
+# ==================================================================================

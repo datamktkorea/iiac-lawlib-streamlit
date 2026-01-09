@@ -46,6 +46,8 @@ qa_system_prompt = """
 class RAGChainBuilder:
     """RAG 체인을 구축하고 관리하는 클래스."""
 
+    _SOURCE_KEYS = ("source", "file_name", "filename", "title", "path")
+
     def __init__(self, llm_type: str, version_option: str):
         """RAGChainBuilder 인스턴스를 초기화합니다.
 
@@ -128,6 +130,42 @@ class RAGChainBuilder:
         # 없으면 원래 질문 반환
         return input_dict["question"]
 
+    def _enrich_documents(self, documents):
+        """Ensure metadata dict carries source, link, and page keys."""
+        enriched = []
+        for doc in documents:
+            metadata = dict(getattr(doc, "metadata", {}) or {})
+            if not metadata.get("source"):
+                for key in self._SOURCE_KEYS:
+                    if metadata.get(key):
+                        metadata["source"] = metadata[key]
+                        break
+            metadata.setdefault("source", "출처 미상")
+            if metadata.get("page") is None and metadata.get("page_number") is not None:
+                metadata["page"] = metadata.get("page_number")
+            if metadata.get("link") is None and metadata.get("url") is not None:
+                metadata["link"] = metadata.get("url")
+            doc.metadata = metadata
+            enriched.append(doc)
+        return enriched
+
+    def _unique_metadata(self, documents):
+        """Remove duplicate sources based on source, link, and page."""
+        unique_metadata = []
+        seen = set()
+        for doc in documents:
+            metadata = getattr(doc, "metadata", {}) or {}
+            signature = (
+                metadata.get("source"),
+                metadata.get("link"),
+                metadata.get("page"),
+            )
+            if signature in seen:
+                continue
+            seen.add(signature)
+            unique_metadata.append(metadata)
+        return unique_metadata
+
     # ============ 전체 체인 ============
     def build(self, messages):
         """메시지 히스토리가 포함된 실행 가능한 RAG 체인을 반환합니다.
@@ -162,11 +200,16 @@ class RAGChainBuilder:
         # - chat_history: 채팅 기록 전달
         chain_with_source = RunnableParallel(
             {
-                "context": RunnableLambda(self._contextualize_question) | self.retriever,
+                "context": RunnableLambda(self._contextualize_question)
+                | self.retriever
+                | RunnableLambda(self._enrich_documents),
                 "question": RunnablePassthrough(),
                 "chat_history": lambda x: x.get("chat_history", []),
             }
-        ).assign(output=chain_from_docs)
+        ).assign(
+            output=chain_from_docs,
+            source_documents=lambda x: self._unique_metadata(x["context"]),
+        )
 
         # 4. 메시지 히스토리 관리 래퍼로 감싸서 반환
         return RunnableWithMessageHistory(

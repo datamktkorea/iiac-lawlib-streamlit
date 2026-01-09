@@ -4,44 +4,15 @@
 채팅 인터페이스를 제공합니다.
 """
 
-import os
-
 import streamlit as st
 from core.rag_chain import build_chain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from streamlit_utils import login_screen, stream_generator
-
-
-def _get_env_value(primary: str, fallback: str) -> str | None:
-    return os.getenv(primary) or os.getenv(fallback)
-
-
-def ensure_secrets_toml() -> None:
-    """Create .streamlit/secrets.toml from env if it does not exist."""
-    secrets_path = os.path.join(".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        return
-
-    redirect_uri = _get_env_value("redirect_uri", "STREAMLIT_REDIRECT_URI")
-    cookie_secret = _get_env_value("cookie_secret", "STREAMLIT_COOKIE_SECRET")
-    client_id = _get_env_value("client_id", "STREAMLIT_CLIENT_ID")
-    client_secret = _get_env_value("client_secret", "STREAMLIT_CLIENT_SECRET")
-    server_metadata_url = _get_env_value("server_metadata_url", "STREAMLIT_SERVER_METADATA_URL")
-
-    if not all([redirect_uri, cookie_secret, client_id, client_secret, server_metadata_url]):
-        return
-
-    os.makedirs(os.path.dirname(secrets_path), exist_ok=True)
-    with open(secrets_path, "w", encoding="utf-8") as f:
-        f.write(
-            "[auth]\n"
-            f'redirect_uri = "{redirect_uri}"\n'
-            f'cookie_secret = "{cookie_secret}"\n'
-            f'client_id = "{client_id}"\n'
-            f'client_secret = "{client_secret}"\n'
-            f'server_metadata_url = "{server_metadata_url}"\n'
-        )
-
+from streamlit_utils import (
+    _render_reference_list,
+    ensure_secrets_toml,
+    login_screen,
+    stream_generator,
+)
 
 ensure_secrets_toml()
 
@@ -51,21 +22,13 @@ openai_versions = (
     "gpt-4o",
     "gpt-5",
 )
-gemini_versions = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview")
 
-# ==================================================================================
-# Streamlit Secrets 설정 (secrets.toml 파일을 대체)
-# secrets_singleton._secrets = {
-#     "auth": {
-#         "redirect_uri": os.getenv("STREAMLIT_REDIRECT_URI"),
-#         "cookie_secret": os.getenv("STREAMLIT_COOKIE_SECRET"),
-#         "client_id": os.getenv("STREAMLIT_CLIENT_ID"),
-#         "client_secret": os.getenv("STREAMLIT_CLIENT_SECRET"),
-#         "server_metadata_url": os.getenv("STREAMLIT_SERVER_METADATA_URL"),
-#     }
-# }
+gemini_versions = (
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-3-flash-preview",
+)
 
-# ==================================================================================
 msgs_map = {}
 for opt in options:
     msgs_map[opt.lower()] = StreamlitChatMessageHistory(key=f"chat_messages_{opt.lower()}")
@@ -75,6 +38,9 @@ for k, v in msgs_map.items():
         v.add_ai_message("무엇을 도와드릴까요?")
 
 avatar_map = {"ai": "app/assets/mdr-logo-180x180.png", "human": "👨‍💻"}
+
+for opt in options:
+    st.session_state.setdefault(f"sources_history_{opt.lower()}", {})
 
 
 # ==================================================================================
@@ -104,37 +70,40 @@ if "messages" not in st.session_state:
 
 # Sidebar 설정
 with st.sidebar:
-    st.header("사용자 정보")
-    st.write(f"환영합니다, {st.user.name}님!")
+    st.header("환영합니다!")
     st.button("Logout", on_click=st.logout)
+
 # ==================================================================================
 # 메인 화면 설정
+header_col, controls_col = st.columns([3, 3.5])  # 헤더, 모델 선택 영역
 
-col1, col2, col3 = st.columns([3, 1, 1])  # 헤더, LLM 모델 선택, 모델 버전 선택
-
-with col1:
-    st.header("인천국제공항공사 AI 비서")
-
-# open ai / gemini 분기
-with col2:
-    st.write("")  # 헤더와 라인 맞추기 위한 여백
-    option = st.selectbox(
-        "사용할 LLM 모델을 선택해주세요.",
-        options,
-        label_visibility="collapsed",
-        index=0,  # index = 0: 디폴트가 index 0 (open ai) 선택
+with header_col:
+    st.markdown(
+        "<h2 style='font-size:1.8rem;margin-top:3px;'>인천국제공항공사 AI 비서</h2>",
+        unsafe_allow_html=True,
     )
 
+# 모델 선택 컨트롤을 오른쪽 컬럼 내부에서 2분할
+with controls_col:
+    st.write("")
+    col2, col3 = st.columns([1.0, 1.5])
 
-with col3:
-    st.write("")  # 헤더와 라인 맞추기 위한 여백
-    version_candidates = openai_versions if option == "OpenAI" else gemini_versions
-    version_option = st.selectbox(
-        "모델 버전을 선택해주세요.",
-        version_candidates,
-        label_visibility="collapsed",
-        index=0,
-    )
+    with col2:
+        option = st.selectbox(
+            "사용할 LLM 모델을 선택해주세요.",
+            options,
+            label_visibility="collapsed",
+            index=0,  # index = 0: 디폴트가 index 0 (open ai) 선택
+        )
+
+    with col3:
+        version_candidates = openai_versions if option == "OpenAI" else gemini_versions
+        version_option = st.selectbox(
+            "모델 버전을 선택해주세요.",
+            version_candidates,
+            label_visibility="collapsed",
+            index=0,
+        )
 
 
 st.write(
@@ -149,9 +118,15 @@ st.write(
 )
 
 # 1. 기존 메시지 먼저 출력
-for msg in msgs_map[option.lower()].messages:
-    message = st.chat_message(msg.type, avatar=avatar_map.get(msg.type))
-    message.write(msg.content)
+current_history = msgs_map[option.lower()]
+sources_history_key = f"sources_history_{option.lower()}"
+sources_history = st.session_state.get(sources_history_key, {})
+
+for idx, msg in enumerate(current_history.messages):
+    with st.chat_message(msg.type, avatar=avatar_map.get(msg.type)):
+        st.write(msg.content)
+        if msg.type == "ai":
+            _render_reference_list(sources_history.get(idx))
 
 # 2. 사용자 입력 처리
 if question := st.chat_input("질문을 입력해주세요"):
@@ -163,8 +138,15 @@ if question := st.chat_input("질문을 입력해주세요"):
     with st.chat_message("ai", avatar=avatar_map.get("ai")):
         with st.spinner("답변을 생성하고 있습니다..."):
             config = {"configurable": {"session_id": "any"}}
-            chain = build_chain(option, version_option, msgs_map[option.lower()])
+            chain = build_chain(option, version_option, current_history)
+            st.session_state["latest_sources"] = []
             st.write_stream(stream_generator(chain, question, config))
+            sources = st.session_state.get("latest_sources", [])
+            if sources and current_history.messages:
+                last_index = len(current_history.messages) - 1
+                sources_history[last_index] = sources
+                st.session_state[sources_history_key] = sources_history
+                st.rerun()
 
 
 # ==================================================================================
@@ -185,4 +167,4 @@ st.markdown(
 )
 
 
-# NOTE: python3 -m streamlit run app/main.py
+# NOTE: uv run -m streamlit run app/main.py

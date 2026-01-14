@@ -1,0 +1,26 @@
+tag:
+  - multiple_choice
+  - iiac
+  - local
+task: iiac_mcq
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    validation: eval/datasets/iiac_mcq.json
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_text: "{{query}}"
+doc_to_target: "{{gold}}"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

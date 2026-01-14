@@ -1,0 +1,33 @@
+[
+  {
+    "id": "sample-001",
+    "question": "인천국제공항공사의 해외 출장 절차는 어떻게 되나요?",
+    "expected_answer": "해외 출장 시 사전 승인, 예산 편성, 안전 교육 이수가 필요하며 귀국 후 보고서를 제출해야 합니다.",
+    "context": [
+      "해외 출장 절차는 사전 승인 및 예산 편성이 요구되며 안전 교육 후 진행할 수 있다.",
+      "출장 완료 후 7일 이내에 정산 및 보고서 제출이 필수이다."
+    ],
+    "metadata": {
+      "category": "출장",
+      "difficulty": "medium",
+      "source_url": "https://incheon-airport.com/policies/travel"
+    },
+    "evaluation_tags": ["policy", "procedure"],
+    "weight": 1.0
+  },
+  {
+    "id": "sample-002",
+    "question": "법무팀에 법령 검토를 요청할 때 필요한 문서는 무엇인가요?",
+    "expected_answer": "법령 검토 요청서와 관련 계약서 초안, 참고 자료를 함께 제출해야 합니다.",
+    "context": [
+      "법무팀 검토 요청 시 요청서, 계약서 초안, 참고 자료 첨부가 필요하다."
+    ],
+    "metadata": {
+      "category": "법무",
+      "difficulty": "easy"
+    },
+    "evaluation_tags": ["legal", "document"],
+    "weight": 0.5
+  }
+]
+

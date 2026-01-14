@@ -158,3 +158,5 @@ dump/
 json/
 pdf/
 .logs/
+
+secrets.toml

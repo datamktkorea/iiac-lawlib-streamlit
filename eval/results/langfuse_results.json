@@ -1,0 +1,132 @@
+{
+  "tool": "langfuse",
+  "llm_type": "OpenAI",
+  "model_version": "gpt-4o-mini",
+  "dataset_path": "eval/datasets/template.json",
+  "total_samples": 2,
+  "evaluated_samples": 2,
+  "elapsed_time": 28.283965826034546,
+  "elapsed_time_formatted": "28.28초",
+  "aggregate_metrics": {
+    "response_time": 7.642514586448669,
+    "has_response": 1.0,
+    "response_length": 669.0,
+    "relevance": 1.0,
+    "accuracy": 0.8500000000000001,
+    "helpfulness": 1.0
+  },
+  "results": [
+    {
+      "id": "sample-001",
+      "question": "인천국제공항공사의 해외 출장 절차는 어떻게 되나요?",
+      "expected_answer": "해외 출장 시 사전 승인, 예산 편성, 안전 교육 이수가 필요하며 귀국 후 보고서를 제출해야 합니다.",
+      "answer": "인천국제공항공사의 해외 출장 절차는 다음과 같은 단계로 이루어집니다:\n\n1. **출장 계획 수립**: 출장자는 출장의 목적, 기간, 방문 국가 및 기관, 출장자 인적 사항 등을 포함한 출장 계획서를 작성해야 합니다. 이 계획서는 출장 유형에 따라 계약 체결, 물품 구매, 국제회의 참석 등 특정 업무 수행을 위한 것인지, 아니면 시찰, 견학, 자료 수집 등의 목적을 위한 것인지에 따라 구분됩니다.\n\n2. **결재 및 심사**: 출장 계획서는 위임 전결 규정에 따른 전결권자의 결재를 받아야 하며, 특히 출장 경비의 전부 또는 일부를 외부 기관이나 개인이 부담하는 경우, 또는 특정 업무 수행이 아닌 국제적 시야 확대를 위한 출장인 경우에는 국외 출장 심사 위원회의 심사를 받아야 합니다.\n\n3. **출장 시행**: 결재가 완료된 후, 출장자는 계획에 따라 출장을 시행합니다. 출발 3일 전까지 결재를 득해야 하며, 부득이한 경우 지연 사유를 명시하고 지체 없이 결재를 받아야 합니다.\n\n4. **출장 결과 보고**: 귀국 후, 출장자는 국외 출장 결과 보고서를 작성하여 제출해야 합니다. 이 보고서에는 출장의 주요 활동 내용, 시사점 및 특이사항, 공개 여부 등이 포함되어야 하며, 관련 증빙 자료(항공권, 숙박비 영수증 등)도 첨부해야 합니다. 결과 보고서는 국외 출장 완료 후 30일 이내에 제출해야 합니다.\n\n5. **공개 여부 결정**: 출장 결과 보고서의 공개 여부를 결정해야 하며, 비공개 시에는 그 사유를 명시해야 합니다.\n\n이러한 절차는 인천국제공항공사의 국외 출장 지침에 따라 체계적으로 운영되며, 출장의 필요성과 타당성을 검토하여 공사의 자원을 효율적으로 활용하는 데 기여합니다.",
+      "metrics": {
+        "response_time": 9.60693907737732,
+        "has_response": true,
+        "response_length": 839,
+        "relevance": 1.0,
+        "accuracy": 0.8,
+        "helpfulness": 1.0
+      },
+      "status": "success",
+      "source_documents": [
+        {
+          "total_pages": 17,
+          "pdfversion": "1.4",
+          "source": "국외출장지침(지침 제185호)",
+          "author": "Administrator",
+          "page_label": "1",
+          "creationdate": "2025-09-02T10:16:14+09:00",
+          "link": "https://api.iiaclaw.kr/uploads/1e604088-0d82-44ea-a13f-6d996a2d32de.pdf",
+          "creator": "Hancom PDF 1.3.0.545",
+          "moddate": "2025-09-02T10:16:14+09:00",
+          "page": 1,
+          "producer": "Hancom PDF 1.3.0.545"
+        },
+        {
+          "total_pages": 17,
+          "pdfversion": "1.4",
+          "producer": "Hancom PDF 1.3.0.545",
+          "link": "https://api.iiaclaw.kr/uploads/1e604088-0d82-44ea-a13f-6d996a2d32de.pdf",
+          "moddate": "2025-09-02T10:16:14+09:00",
+          "source": "국외출장지침(지침 제185호)",
+          "page_label": "15",
+          "creator": "Hancom PDF 1.3.0.545",
+          "page": 15,
+          "creationdate": "2025-09-02T10:16:14+09:00",
+          "author": "Administrator"
+        },
+        {
+          "page_label": "8",
+          "producer": "Hancom PDF 1.3.0.545",
+          "creator": "Hancom PDF 1.3.0.545",
+          "link": "https://api.iiaclaw.kr/uploads/1e604088-0d82-44ea-a13f-6d996a2d32de.pdf",
+          "page": 8,
+          "source": "국외출장지침(지침 제185호)",
+          "total_pages": 17,
+          "creationdate": "2025-09-02T10:16:14+09:00",
+          "author": "Administrator",
+          "moddate": "2025-09-02T10:16:14+09:00",
+          "pdfversion": "1.4"
+        },
+        {
+          "moddate": "2025-09-02T10:16:14+09:00",
+          "total_pages": 17,
+          "source": "국외출장지침(지침 제185호)",
+          "creator": "Hancom PDF 1.3.0.545",
+          "page": 4,
+          "producer": "Hancom PDF 1.3.0.545",
+          "pdfversion": "1.4",
+          "author": "Administrator",
+          "creationdate": "2025-09-02T10:16:14+09:00",
+          "link": "https://api.iiaclaw.kr/uploads/1e604088-0d82-44ea-a13f-6d996a2d32de.pdf",
+          "page_label": "4"
+        }
+      ]
+    },
+    {
+      "id": "sample-002",
+      "question": "법무팀에 법령 검토를 요청할 때 필요한 문서는 무엇인가요?",
+      "expected_answer": "법령 검토 요청서와 관련 계약서 초안, 참고 자료를 함께 제출해야 합니다.",
+      "answer": "법무팀에 법령 검토를 요청할 때 필요한 문서는 다음과 같습니다:\n\n1. **법률 자문 질의서**: 별지 제6호 서식에 따른 법률 자문 질의서를 작성하여 제출해야 합니다. 이 질의서에는 검토를 요청하는 법령의 내용과 관련된 구체적인 질문이 포함되어야 합니다.\n\n2. **관련 참고 자료**: 법령 검토와 관련된 모든 참고 자료를 함께 제출해야 합니다. 이는 법령의 해석이나 적용에 필요한 배경 정보를 제공하는 데 도움이 됩니다.\n\n3. **계약 문서의 검토 요청 시**: 계약 대상 서류와 함께 붙임 1의 법률 검토 대상 및 붙임 2의 계약 문서 검토 의뢰 체크리스트를 포함해야 합니다. 이는 계약의 법적 유효성을 검토하는 데 필요한 정보를 제공합니다.\n\n이러한 서류들은 법무팀이 요청 사항을 정확히 이해하고, 필요한 법적 검토를 수행하는 데 필수적입니다. 서류의 내용이 미비할 경우, 주관 부서장은 보완을 요청할 수 있으며, 보완이 이루어지지 않을 경우 법률 자문 요청이 거절될 수 있습니다.",
+      "metrics": {
+        "response_time": 5.6780900955200195,
+        "has_response": true,
+        "response_length": 499,
+        "relevance": 1.0,
+        "accuracy": 0.9,
+        "helpfulness": 1.0
+      },
+      "status": "success",
+      "source_documents": [
+        {
+          "link": "https://api.iiaclaw.kr/uploads/5c2edfb9-a38b-48a5-8ff1-6109ec1331a7.pdf",
+          "creationdate": "2024-07-19T10:33:52+09:00",
+          "moddate": "2024-07-19T10:33:52+09:00",
+          "creator": "Hancom PDF 1.3.0.545",
+          "pdfversion": "1.4",
+          "page": 7,
+          "producer": "Hancom PDF 1.3.0.545",
+          "author": "Administrator",
+          "source": "법률사무처리규정(규정 제577호)",
+          "page_label": "7",
+          "total_pages": 24
+        },
+        {
+          "moddate": "2024-07-19T10:33:52+09:00",
+          "page_label": "23",
+          "page": 23,
+          "producer": "Hancom PDF 1.3.0.545",
+          "total_pages": 24,
+          "pdfversion": "1.4",
+          "link": "https://api.iiaclaw.kr/uploads/5c2edfb9-a38b-48a5-8ff1-6109ec1331a7.pdf",
+          "creationdate": "2024-07-19T10:33:52+09:00",
+          "author": "Administrator",
+          "creator": "Hancom PDF 1.3.0.545",
+          "source": "법률사무처리규정(규정 제577호)"
+        }
+      ]
+    }
+  ]
+}
